@@ -1,4 +1,4 @@
-Chamerlain
+Chamberlain
 ====
 
 Automated Jenkins configuration for your GitHub repos.
