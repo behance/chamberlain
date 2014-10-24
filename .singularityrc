@@ -1,4 +1,5 @@
 batch :prepare_env do
+  shelltask { command 'pip install virtualenv' }
   shelltask { command 'virtualenv .virtualenv' }
   shelltask { command '.virtualenv/bin/pip install -r requirements.txt -r test-requirements.txt' }
 end
