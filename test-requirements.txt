@@ -10,3 +10,4 @@ testtools
 testrepository
 sphinxcontrib-programoutput
 mock
+tox==1.8.1

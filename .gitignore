@@ -1,2 +1,3 @@
-.tox
-.virtualenv
+.tox/
+.virtualenv/
+chamberlain.egg-info/
