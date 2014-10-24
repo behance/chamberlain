@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import chamberlain
+import chamberlain.version
 import logging
 import os
 import sys
@@ -11,8 +11,16 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
 
+def version():
+    return "Chamberlain version: %s" % \
+        chamberlain.version.version_info.version_string()
+
+
 def create_parser():
     parser = jenkins_cmd.create_parser()
+    parser.add_argument('--version', dest='version', action='version',
+                        version=version(),
+                        help='show version')
     return parser
 
 
@@ -32,11 +40,6 @@ def main(argv=None):
                        os.path.join(os.getcwd(),
                        '.jenkins-job-builder.ini'))
     print options
-
-
-def version():
-    return "Chamberlain version: %s" % \
-        chamberlain.version.version_info.version_string()
 
 
 if __name__ == '__main__':
