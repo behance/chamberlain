@@ -2,7 +2,6 @@
 
 import chamberlain.version
 import logging
-import os
 import sys
 
 from jenkins_jobs import cmd as jenkins_cmd
@@ -35,10 +34,6 @@ def main(argv=None):
                                     options.log_level.upper(),
                                     logger.getEffectiveLevel())
         logger.setLevel(options.log_level)
-
-    options.setdefault('conf',
-                       os.path.join(os.getcwd(),
-                       '.jenkins-job-builder.ini'))
     print options
 
 
