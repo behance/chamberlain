@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-import chamberlain.version
+import argparse
+import chamberlain.cli.command as cli_commands
+import chamberlain.version as chamberlain_version
 import logging
 import sys
-
-from jenkins_jobs import cmd as jenkins_cmd
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
@@ -12,14 +12,33 @@ logger = logging.getLogger()
 
 def version():
     return "Chamberlain version: %s" % \
-        chamberlain.version.version_info.version_string()
+        chamberlain_version.version_info.version_string()
+
+
+def command_hash():
+    return {
+        "list-repos": cli_commands.ListRepoCommand
+    }
 
 
 def create_parser():
-    parser = jenkins_cmd.create_parser()
-    parser.add_argument('--version', dest='version', action='version',
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--version',
+                        dest='version',
+                        action='version',
                         version=version(),
                         help='show version')
+
+    cmd_parsers = parser.add_subparsers(help="chamberlain commands",
+                                        dest="command")
+
+    for cmd, cmd_class in command_hash().items():
+        cmd_obj = cmd_class(logger)
+        command_parser = cmd_parsers.add_parser(cmd,
+                                                help=cmd_obj.description())
+        cmd_obj.configure_parser(command_parser)
+
     return parser
 
 
@@ -29,12 +48,8 @@ def main(argv=None):
 
     if not options.command:
         parser.error("Must specify a 'command' to be performed")
-    if (options.log_level is not None):
-        options.log_level = getattr(logging,
-                                    options.log_level.upper(),
-                                    logger.getEffectiveLevel())
-        logger.setLevel(options.log_level)
-    print options
+
+    command_hash()[options.command](logger).execute(options)
 
 
 if __name__ == '__main__':
