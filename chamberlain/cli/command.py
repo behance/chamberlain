@@ -1,11 +1,15 @@
+import chamberlain.application as chap  # lols
+
 from abc import ABCMeta, abstractmethod
 
 
 class Command():
     __metaclass__ = ABCMeta
 
-    def __init__(self, log):
+    def __init__(self, log, config_file=None):
         self.log = log
+        self.app = chap.Application(log)
+        self.app.load_config(config_file)
 
     @abstractmethod
     def configure_parser(self, parser):
