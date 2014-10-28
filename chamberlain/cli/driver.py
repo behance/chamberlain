@@ -24,11 +24,16 @@ def command_hash():
 def create_parser():
     parser = argparse.ArgumentParser()
 
+    parser.add_argument('-c',
+                        '--config',
+                        dest='config',
+                        help='Configuration file to load.')
+
     parser.add_argument('--version',
                         dest='version',
                         action='version',
                         version=version(),
-                        help='show version')
+                        help='Show version')
 
     cmd_parsers = parser.add_subparsers(help="chamberlain commands",
                                         dest="command")
@@ -49,7 +54,7 @@ def main(argv=None):
     if not options.command:
         parser.error("Must specify a 'command' to be performed")
 
-    command_hash()[options.command](logger).execute(options)
+    command_hash()[options.command](logger, options.config).execute(options)
 
 
 if __name__ == '__main__':
