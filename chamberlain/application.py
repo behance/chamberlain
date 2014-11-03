@@ -1,7 +1,14 @@
 import json
 import os
 
-from github import Github
+from github3 import GitHub
+
+
+def app_home():
+    try:
+        return os.path.join(os.environ["HOME"], ".chamberlain")
+    except KeyError:
+        raise "HOME environment variable not set?"
 
 
 def load_json_file(file_path):
@@ -12,10 +19,7 @@ def load_json_file(file_path):
 
 
 def prep_default_config():
-    try:
-        home = os.path.join(os.environ["HOME"], ".chamberlain")
-    except KeyError:
-        raise "HOME environment variable not set?"
+    home = app_home()
 
     if not os.path.exists(home):
         os.makedirs(home)
@@ -57,6 +61,33 @@ class Config(object):
         return True
 
 
+class GithubClient:
+    def __init__(self, config):
+        self.repos = None
+        self.config = config
+        self.client = self._client(config.auth)
+
+    def repo_list(self, force_sync=False):
+        if self.repos is not None and not force_sync:
+            return self.repos
+
+        # TODO: not force_sync & cache repo file exists
+
+        self.repos = []
+        for org_login in self.config.orgs():
+            for repo in self.client.organization(org_login).iter_repos():
+                self.repos.append(repo)
+        return self.repos
+
+    def _client(self, auth):
+        if auth.token.exists():
+            return GitHub(token=auth.token())
+        if auth.username.exists() and auth.password.exists():
+            return GitHub(username=auth.username(),
+                          password=auth.password())
+        return GitHub()
+
+
 class Application:
     def __init__(self, log):
         self.config = Config({})
@@ -68,10 +99,4 @@ class Application:
         self.config = Config(load_json_file(cfg_file))
 
     def github(self):
-        gh_config = self.config.github
-
-        if gh_config.token.exists():
-            return Github(self.config.github.token())
-        if gh_config.username.exists() and gh_config.password.exists():
-            return Github(gh_config.username(), gh_config.password())
-        return Github()
+        return GithubClient(self.config.github)
