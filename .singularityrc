@@ -8,3 +8,5 @@ batch :ci_test do
   invoke_batch :prepare_env
   shelltask { command '.virtualenv/bin/tox' }
 end
+
+invoke_batch :ci_test
