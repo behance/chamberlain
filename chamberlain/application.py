@@ -11,6 +11,11 @@ def app_home():
         raise "HOME environment variable not set?"
 
 
+def write_json_file(file_path, data):
+    with open(file_path, "w") as file_handle:
+        file_handle.write(json.dumps(data))
+
+
 def load_json_file(file_path):
     with open(file_path, "r") as file_handle:
         content = file_handle.read().replace('\n', '')
@@ -71,13 +76,28 @@ class GithubClient:
         if self.repos is not None and not force_sync:
             return self.repos
 
-        # TODO: not force_sync & cache repo file exists
+        if os.path.isfile(self._cache_file()) and not force_sync:
+            self.repos = load_json_file(self._cache_file())
+            return self.repos
 
         self.repos = []
         for org_login in self.config.orgs():
             for repo in self.client.organization(org_login).iter_repos():
-                self.repos.append(repo)
+                self.repos.append({
+                    "id": repo.id,
+                    "full_name": repo.full_name,
+                    "owner": repo.owner.login,
+                    "name": repo.name,
+                    "ssh_url": repo.ssh_url,
+                    "fork": repo.fork
+                })
+
+        write_json_file(self._cache_file(), self.repos)
+
         return self.repos
+
+    def _cache_file(self):
+        return os.path.join(app_home(), "repos.json")
 
     def _client(self, auth):
         if auth.token.exists():
