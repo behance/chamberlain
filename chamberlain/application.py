@@ -83,18 +83,21 @@ class GithubClient:
         self.repos = []
         for org_login in self.config.orgs():
             for repo in self.client.organization(org_login).iter_repos():
-                self.repos.append({
-                    "id": repo.id,
-                    "full_name": repo.full_name,
-                    "owner": repo.owner.login,
-                    "name": repo.name,
-                    "ssh_url": repo.ssh_url,
-                    "fork": repo.fork
-                })
+                self.repos.append(self._repo_hash(repo))
 
         write_json_file(self._cache_file(), self.repos)
 
         return self.repos
+
+    def _repo_hash(self, repo):
+        return {
+            "id": repo.id,
+            "full_name": repo.full_name,
+            "owner": repo.owner.login,
+            "name": repo.name,
+            "ssh_url": repo.ssh_url,
+            "fork": repo.fork
+        }
 
     def _cache_file(self):
         return os.path.join(app_home(), "repos.json")
