@@ -1,6 +1,7 @@
-import json
 import os
 
+from chamberlain.config import Config
+from chamberlain.json_file import load_json_file, write_json_file
 from github3 import GitHub
 
 
@@ -9,18 +10,6 @@ def app_home():
         return os.path.join(os.environ["HOME"], ".chamberlain")
     except KeyError:
         raise "HOME environment variable not set?"
-
-
-def write_json_file(file_path, data):
-    with open(file_path, "w") as file_handle:
-        file_handle.write(json.dumps(data))
-
-
-def load_json_file(file_path):
-    with open(file_path, "r") as file_handle:
-        content = file_handle.read().replace('\n', '')
-
-    return json.loads(content)
 
 
 def prep_default_config():
@@ -37,33 +26,6 @@ def prep_default_config():
         file.close()
 
     return default_cfg
-
-
-class NullConfig(object):
-    def __getattr__(self, name):
-        return self
-
-    def __call__(self):
-        return None
-
-    def exists(self):
-        return False
-
-
-class Config(object):
-    def __init__(self, data):
-        self.__data = data
-
-    def __getattr__(self, name):
-        if name in self.__data:
-            return Config(self.__data[name])
-        return NullConfig()
-
-    def __call__(self):
-        return self.__data
-
-    def exists(self):
-        return True
 
 
 class GithubClient:
