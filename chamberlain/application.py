@@ -39,15 +39,16 @@ class GithubClient:
             return self.repos
 
         if os.path.isfile(self._cache_file()) and not force_sync:
-            self.repos = load_json_file(self._cache_file())
+            self.repos = [Config(repo) for repo in load_json_file(self._cache_file())]
             return self.repos
 
-        self.repos = []
+        repos = []
         for org_login in self.config.orgs():
             for repo in self.client.organization(org_login).iter_repos():
-                self.repos.append(self._repo_hash(repo))
+                repos.append(self._repo_hash(repo))
 
-        write_json_file(self._cache_file(), self.repos)
+        write_json_file(self._cache_file(), repos)
+        self.repos = [Config(repo) for repo in repos]
 
         return self.repos
 
