@@ -59,6 +59,7 @@ class GithubClient:
             "owner": repo.owner.login,
             "name": repo.name,
             "ssh_url": repo.ssh_url,
+            "private": repo.private,
             "fork": repo.fork
         }
 
