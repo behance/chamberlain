@@ -20,10 +20,10 @@ class ConfigTest(unittest.TestCase):
         self.cfg = Config({"foo": "bar"})
 
     def test_existing_k_returns_config(self):
-        self.assertIsInstance(self.cfg.foo, Config)
+        self.assertTrue(type(self.cfg.foo) is Config)
 
     def test_non_existing_k_returns_null_config(self):
-        self.assertIsInstance(self.cfg.baz, NullConfig)
+        self.assertTrue(type(self.cfg.baz) is NullConfig)
 
     def test_kv_get_on_k_returns_v(self):
         self.assertEquals(self.cfg.foo(), "bar")
