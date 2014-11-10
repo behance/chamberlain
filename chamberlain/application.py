@@ -39,7 +39,8 @@ class GithubClient:
             return self.repos
 
         if os.path.isfile(self._cache_file()) and not force_sync:
-            self.repos = [Config(repo) for repo in load_json_file(self._cache_file())]
+            self.repos = [Config(repo)
+                          for repo in load_json_file(self._cache_file())]
             return self.repos
 
         repos = []

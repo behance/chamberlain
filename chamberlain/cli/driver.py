@@ -51,7 +51,8 @@ def main(argv=None):
     if not options.command:
         parser.error("Must specify a 'command' to be performed")
 
-    command_hash()[options.command](log.instance(), options.config).execute(options)
+    command_hash()[options.command](log.instance(),
+                                    options.config).execute(options)
 
 
 if __name__ == '__main__':
