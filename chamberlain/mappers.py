@@ -21,11 +21,15 @@ class Mapper():
 
 class TemplateFetcher():
     def __init__(self, template_meta):
+        if not type(template_meta) == Config:
+            template_meta = Config(template_meta)
         self.cfg = template_meta
         self.private_only = not template_meta.include_public()
         self.forks_only = not template_meta.include_forks()
 
     def templates(self, repo):
+        if not type(repo) == Config:
+            repo = Config(repo)
         if self.cfg.owner() != repo.owner():
             return []
         if self.cfg.repo.exists() and self.cfg.repo() != repo.name():
