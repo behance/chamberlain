@@ -2,6 +2,7 @@ import os
 
 from chamberlain.config import Config
 from chamberlain.github import Client as GHClient
+from chamberlain.mappers import RepoMapper
 from chamberlain.json_file import load_json_file
 
 
@@ -14,17 +15,13 @@ def app_home():
 
 def prep_default_config():
     home = app_home()
-
     if not os.path.exists(home):
         os.makedirs(home)
-
     default_cfg = os.path.join(home, "config.json")
-
     if not os.path.exists(default_cfg):
         file = open(default_cfg, "w")
         file.write("{}")
         file.close()
-
     return default_cfg
 
 
@@ -39,4 +36,7 @@ class Application:
         self.config = Config(load_json_file(cfg_file))
 
     def github(self):
-        return GHClient(self.config.github, app_home())
+        return GHClient(self.config.github, cache_dir=app_home())
+
+    def repo_mapper(self):
+        return RepoMapper(self.config.jenkins.jobs())
