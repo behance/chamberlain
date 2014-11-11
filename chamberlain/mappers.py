@@ -50,13 +50,7 @@ class TemplateFetcher():
 
 class RepoMapper(Mapper):
     """Mapper whos domain is a list of repositories"""
-    def map_configs(self, repos, filters=[]):
-        if len(filters) > 0:
-            repos = {
-                repo
-                for repo in repos
-                if any(repo.name() in r or r in repo.name() for r in filters)
-            }
+    def map_configs(self, repos):
         mappings = {}
         for repo in repos:
             for instance, templates in self.filter_repo_jobs(repo).iteritems():

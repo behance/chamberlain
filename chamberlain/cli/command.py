@@ -41,9 +41,9 @@ class ShowMappingCommand(Command):
         return "List repositories & their associated job templates."
 
     def execute(self, opts):
-        repos = self.app.github().repo_list(force_sync=opts.force)
-        mappings = self.app.repo_mapper().map_configs(repos,
-                                                      filters=opts.repos)
+        repos = self.app.github().repo_list(force_sync=opts.force,
+                                            filters=opts.repos)
+        mappings = self.app.repo_mapper().map_configs(repos)
 
         # TODO: actually care how I'm doing this
         for repo, instances in mappings.iteritems():
