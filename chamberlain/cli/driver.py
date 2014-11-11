@@ -14,23 +14,23 @@ def version():
 
 def command_hash():
     return {
-        "list-repos": cli_commands.ListRepoCommand
+        "map": cli_commands.ShowMappingCommand
     }
 
 
 def create_parser():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-c',
-                        '--config',
-                        dest='config',
-                        help='Configuration file to load.')
+    parser.add_argument("-c",
+                        "--config",
+                        dest="config",
+                        help="Configuration file to load.")
 
-    parser.add_argument('--version',
-                        dest='version',
-                        action='version',
+    parser.add_argument("--version",
+                        dest="version",
+                        action="version",
                         version=version(),
-                        help='Show version')
+                        help="Show version")
 
     cmd_parsers = parser.add_subparsers(help="chamberlain commands",
                                         dest="command")
@@ -56,6 +56,6 @@ def main(argv=None):
                      options.config).execute(options))
 
 
-if __name__ == '__main__':
-    sys.path.insert(0, '.')
+if __name__ == "__main__":
+    sys.path.insert(0, ".")
     main()

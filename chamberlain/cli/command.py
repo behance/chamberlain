@@ -24,8 +24,12 @@ class Command():
         return
 
 
-class ListRepoCommand(Command):
+class ShowMappingCommand(Command):
     def configure_parser(self, parser):
+        parser.add_argument("repos",
+                            nargs="*",
+                            default=[],
+                            help="List of repositories to filter for.")
         parser.add_argument("-f",
                             "--force-sync",
                             dest="force",
@@ -37,7 +41,8 @@ class ListRepoCommand(Command):
         return "List repositories & their associated job templates."
 
     def execute(self, opts):
-        repos = self.app.github().repo_list(force_sync=opts.force)
+        repos = self.app.github().repo_list(force_sync=opts.force,
+                                            filters=opts.repos)
         mappings = self.app.repo_mapper().map_configs(repos)
 
         # TODO: actually care how I'm doing this

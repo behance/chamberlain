@@ -63,7 +63,7 @@ sudo python setup.py install
 
 ## Usage
 
-#### `chamberlain list-repos [REPO1 REPO2 ...]`
+#### `chamberlain map [REPO1 REPO2 ...]`
 show github repositories and what job templates each one is associated with, or which job templates are associated with the given repos.
 
 **this command caches its results in `~/.chamberlain/repos.json`**

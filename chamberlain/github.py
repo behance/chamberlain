@@ -13,14 +13,14 @@ class Client:
         self.client = self._client(config.auth)
         self.cache_file = os.path.join(cache_dir, "github_repos.json")
 
-    def repo_list(self, force_sync=False):
+    def repo_list(self, force_sync=False, filters=[]):
         if self.repos is not None and not force_sync:
-            return self.repos
+            return self.filter_repos(filters)
 
         if os.path.isfile(self.cache_file) and not force_sync:
             self.repos = [Config(repo)
                           for repo in load_json_file(self.cache_file)]
-            return self.repos
+            return self.filter_repos(filters)
 
         repos = []
         for org_login in self.config.orgs():
@@ -30,6 +30,15 @@ class Client:
         write_json_file(self.cache_file, repos)
         self.repos = [Config(repo) for repo in repos]
 
+        return self.filter_repos(filters)
+
+    def filter_repos(self, filters):
+        if len(filters) > 0:
+            return [
+                repo
+                for repo in self.repos
+                if any(repo.name() in r or r in repo.name() for r in filters)
+            ]
         return self.repos
 
     def _client(self, auth):
