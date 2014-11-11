@@ -28,12 +28,22 @@ class ListRepoCommand(Command):
     def configure_parser(self, parser):
         parser.add_argument("-f",
                             "--force-sync",
-                            type=bool,
+                            dest="force",
+                            action="store_true",
+                            default=False,
                             help="Force repository sync, ignoring cache.")
 
     def description(self):
         return "List repositories & their associated job templates."
 
     def execute(self, opts):
-        # TODO:
-        return
+        repos = self.app.github().repo_list(force_sync=opts.force)
+        mappings = self.app.repo_mapper().map_configs(repos)
+
+        # TODO: actually care how I'm doing this
+        for repo, instances in mappings.iteritems():
+            self.log.info(repo)
+            for instance, templates in instances.iteritems():
+                self.log.info("\t%s" % instance)
+                for template in templates:
+                    self.log.info("\t\t- %s" % template)
