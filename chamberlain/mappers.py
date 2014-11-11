@@ -55,7 +55,7 @@ class RepoMapper(Mapper):
             repos = {
                 repo
                 for repo in repos
-                if any(repo.name() in r for r in filters)
+                if any(repo.name() in r or r in repo.name() for r in filters)
             }
         mappings = {}
         for repo in repos:
