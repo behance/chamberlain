@@ -24,7 +24,7 @@ class Command():
         return
 
 
-class ListRepoCommand(Command):
+class ShowMappingCommand(Command):
     def configure_parser(self, parser):
         parser.add_argument("-f",
                             "--force-sync",
