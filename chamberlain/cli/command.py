@@ -26,6 +26,10 @@ class Command():
 
 class ShowMappingCommand(Command):
     def configure_parser(self, parser):
+        parser.add_argument("repos",
+                            nargs="*",
+                            default=[],
+                            help="List of repositories to filter for.")
         parser.add_argument("-f",
                             "--force-sync",
                             dest="force",
@@ -38,7 +42,8 @@ class ShowMappingCommand(Command):
 
     def execute(self, opts):
         repos = self.app.github().repo_list(force_sync=opts.force)
-        mappings = self.app.repo_mapper().map_configs(repos)
+        mappings = self.app.repo_mapper().map_configs(repos,
+                                                      filters=opts.repos)
 
         # TODO: actually care how I'm doing this
         for repo, instances in mappings.iteritems():
