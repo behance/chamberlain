@@ -1,9 +1,9 @@
 import os
 
 from chamberlain.config import Config
+from chamberlain.files import load_json_file
 from chamberlain.github import Client as GHClient
 from chamberlain.mappers import RepoMapper
-from chamberlain.json_file import load_json_file
 
 
 def app_home():
