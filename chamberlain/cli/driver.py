@@ -14,43 +14,38 @@ def version():
 
 def command_hash():
     return {
-        "map": cli_commands.ShowMappingCommand
+        "map": cli_commands.ShowMappingCommand,
+        "generate": cli_commands.GenerateTemplatesCommand
     }
 
 
 def create_parser():
     parser = argparse.ArgumentParser()
-
     parser.add_argument("-c",
                         "--config",
                         dest="config",
                         help="Configuration file to load.")
-
-    parser.add_argument("--version",
+    parser.add_argument("-v",
+                        "--version",
                         dest="version",
                         action="version",
                         version=version(),
                         help="Show version")
-
     cmd_parsers = parser.add_subparsers(help="chamberlain commands",
                                         dest="command")
-
     for cmd, cmd_class in command_hash().items():
         cmd_obj = cmd_class(log.instance())
         command_parser = cmd_parsers.add_parser(cmd,
                                                 help=cmd_obj.description())
         cmd_obj.configure_parser(command_parser)
-
     return parser
 
 
 def main(argv=None):
     parser = create_parser()
     options = parser.parse_args(argv)
-
     if not options.command:
         parser.error("Must specify a 'command' to be performed")
-
     command = command_hash()[options.command]
     sys.exit(command(log.instance(),
                      options.config).execute(options))
