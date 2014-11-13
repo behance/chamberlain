@@ -16,21 +16,24 @@ class Client:
     def repo_list(self, force_sync=False, filters=[]):
         if self.repos is not None and not force_sync:
             return self.filter_repos(filters)
-
         if os.path.isfile(self.cache_file) and not force_sync:
             self.repos = [Config(repo)
                           for repo in load_json_file(self.cache_file)]
             return self.filter_repos(filters)
-
         repos = []
         for org_login in self.config.orgs():
             for repo in self.client.organization(org_login).iter_repos():
                 repos.append(repo_hash(repo))
-
         write_json_file(self.cache_file, repos)
         self.repos = [Config(repo) for repo in repos]
-
         return self.filter_repos(filters)
+
+    def repo_data(self, repo, force_sync=False):
+        repos = self.repo_list(force_sync=force_sync, filters=[repo])
+        if len(repos) > 1 and any([r.name() == repo for r in repos]):
+            raise RuntimeWarning("'%s' returned multiple repos with no exact\
+            matches. use repo_list instead if this was desired" % repo)
+        return repos.pop()
 
     def filter_repos(self, filters):
         if len(filters) > 0:

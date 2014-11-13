@@ -72,7 +72,7 @@ class GenerateTemplatesCommand(Command):
         self.log.info("GENERATING TEMPLATES")
         self.log.info("====================")
         for repo, instances in self.repo_job_mapping(opts).iteritems():
-            repo_data = self.app.github().repo_list(filters=[repo]).pop()
+            repo_data = self.app.github().repo_data(repo)
             for instance, templates in instances.iteritems():
                 params = {
                     "name": "%s-%s" % (instance, repo),
