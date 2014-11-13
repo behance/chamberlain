@@ -1,7 +1,7 @@
 import os
 
 from chamberlain.config import Config
-from chamberlain.json_file import load_json_file, write_json_file
+from chamberlain.files import load_json_file, write_json_file
 from chamberlain.repo import repo_hash
 from github3 import GitHub
 
