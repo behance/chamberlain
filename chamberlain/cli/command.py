@@ -65,21 +65,27 @@ class GenerateTemplatesCommand(Command):
         self.log.info("Cleaning %s ..." % self.app.workspace._wdir)
         self.app.workspace.clean()
         self.log.info("Copying into workspace")
+        seen_instances = []
         for template_dir in opts.templates:
             self.log.info("\t- %s" % template_dir)
-            self.app.workspace.copy_contents(template_dir)
+            self.app.workspace.copy_templates(template_dir)
         for repo, instances in self.repo_job_mapping(opts).iteritems():
             repo_data = self.app.github().repo_data(repo)
             for instance, templates in instances.iteritems():
+                if instance not in seen_instances:
+                    self.app.workspace.create_subdir(instance)
+                    workspace_tpl = self.app.workspace.template_subdir()
+                    self.app.workspace.copy_contents(workspace_tpl, instance)
+                    seen_instances.append(instance)
                 params = {
                     "name": "%s-%s" % (instance, repo),
                     "repo": repo_data.name(),
                     "sshurl": repo_data.ssh_url(),
                 }
-                tname = jenkins_template.template_name(repo)
-                tpath = "%s-%s" % (instance, tname)
                 yaml = jenkins_template.generate_project(params, templates)
                 self.log.info(yaml + "\n")
+                tname = jenkins_template.template_name(repo)
+                tpath = "%s/%s" % (instance, tname)
                 self.app.workspace.create_file(tpath, yaml)
 
 

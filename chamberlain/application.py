@@ -50,15 +50,21 @@ class Workspace():
         if not d == old_workspace and old_workspace is not None:
             self.copy_contents(old_workspace)
 
-    def copy_contents(self, in_dir):
+    def copy_templates(self, in_dir):
+        self.copy_contents(in_dir, subdir="templates")
+
+    def copy_contents(self, in_dir, subdir=""):
+        subdir_fp = os.path.join(self._wdir, subdir)
+        if not os.path.isdir(subdir_fp):
+            os.mkdir(subdir_fp)
         # because shutil.copytree fails when _wdir exists and
         # is given as the destination
         for fi in os.listdir(in_dir):
-            full_path = os.path.join(in_dir, fi)
-            if os.path.isdir(full_path):
-                shutil.copytree(full_path, os.path.join(self._wdir, fi))
+            fpath = os.path.join(in_dir, fi)
+            if os.path.isdir(fpath):
+                shutil.copytree(fpath, os.path.join(self._wdir, subdir, fi))
                 continue
-            shutil.copy(full_path, self._wdir)
+            shutil.copy(fpath, os.path.join(self._wdir, subdir))
 
     def create_subdir(self, subdir):
         full_path = os.path.join(self._wdir, subdir)
@@ -68,6 +74,9 @@ class Workspace():
 
     def create_file(self, path, contents):
         write_file(os.path.join(self._wdir, path), contents)
+
+    def template_subdir(self):
+        return os.path.join(self._wdir, "templates")
 
     def _default_workspace(self):
         return os.path.join(app_home(), "workspace")
