@@ -60,11 +60,11 @@ class Workspace():
         # because shutil.copytree fails when _wdir exists and
         # is given as the destination
         for fi in os.listdir(in_dir):
-            full_path = os.path.join(in_dir, fi)
-            if os.path.isdir(full_path):
-                shutil.copytree(full_path, os.path.join(self._wdir, subdir, fi))
+            fpath = os.path.join(in_dir, fi)
+            if os.path.isdir(fpath):
+                shutil.copytree(fpath, os.path.join(self._wdir, subdir, fi))
                 continue
-            shutil.copy(full_path, os.path.join(self._wdir, subdir))
+            shutil.copy(fpath, os.path.join(self._wdir, subdir))
 
     def create_subdir(self, subdir):
         full_path = os.path.join(self._wdir, subdir)
