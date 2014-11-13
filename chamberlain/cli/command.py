@@ -64,13 +64,10 @@ class GenerateTemplatesCommand(Command):
         self.app.workspace.set_dir(opts.workspace)
         self.log.info("Cleaning %s ..." % self.app.workspace._wdir)
         self.app.workspace.clean()
-        self.log.info("Copying templates into workspace")
+        self.log.info("Copying into workspace")
         for template_dir in opts.templates:
             self.log.info("\t- %s" % template_dir)
             self.app.workspace.copy_contents(template_dir)
-        self.log.info("====================")
-        self.log.info("GENERATING TEMPLATES")
-        self.log.info("====================")
         for repo, instances in self.repo_job_mapping(opts).iteritems():
             repo_data = self.app.github().repo_data(repo)
             for instance, templates in instances.iteritems():
