@@ -30,52 +30,70 @@ sudo python setup.py install
             "behanceops"
         ]
     },
-
-    "template_cache": "location_of_cache_for_template_generation",
-
     "jenkins": {
-        "test-instance": {
-            "host": "http://localhost:8080",
-            "token": "user_token",
-            "jobs": [
-                {
-                    "organization": "your_github_org",
-                    "templates": "location_of_templates",
-                    "exclude": [
-                        "repo1",
-                        "repo2"
-                    ]
-                },
-                {
-                    "organization": "another_org",
-                    "repo": "repo",
-                    "templates": "location_of_repo_specific_templates"
-                },
-                {
-                    "file": "location_of_YAML_file",
-                    "templates": "location_of_repo_specific_templates"
-                }
-            ]
-        }
+        "instances": [
+            {
+                "name": "bejankins",
+                "host": "http://bejankins.dev-be-aws.net:8080",
+                "token": "67a374b31117d62ba3798a11f138ba93"
+            }
+        ],
+        "jobs": [
+            {
+                "instance": "bejankins",
+                "owner": "behanceops",
+                "templates": [
+                    "branch-cookbook-{repo}",
+                    "master-cookbook-{repo}"
+                ],
+                "exclude": [
+                    "misc",
+                    "deploy-jenkins",
+                    "chef",
+                    "yum",
+                    "users",
+                    "openssl",
+                    "presentations",
+                    "scripts"
+                ]
+            }
+        ]
     }
 }
 ```
 
 ## Usage
 
+#### Universal Flags
+- `--force-sync`, `-f` : pull repo data from github instead of referencing the cached list of repositories in `~/.chamberlain/github_repos.json`.
+
+#### Universal Args
+- `repos` : list of repositories to perform actions on.
+
+**e.g.**: `chamberlain generate behance/repo1 matcher_word`
+
+Internally, the list of repos that is generated for the commands to use will be filtered based on partial matches for `behance/repo1` and `matcher_word`
+
+### Commands
+
 #### `chamberlain map [REPO1 REPO2 ...]`
 show github repositories and what job templates each one is associated with, or which job templates are associated with the given repos.
 
-**this command caches its results in `~/.chamberlain/repos.json`**
+**this command caches its results in `~/.chamberlain/github_repos.json`**
 
-##### Flags:
-- `--force-sync`, `-f` : pull repo data from github instead of referencing the cached list of repositories in `~/.chamberlain/repos.json`
+#### `chamberlain generate [REPO1 REPO2 ...]`
+Given directories with YAML templates, prepares a workspace and generates project-template YAML files in the workspace.
 
-#### `chamberlain generate`
-generate template files from github repos.
+**WARNING: This command wipes the given directory clean**
 
-#### `chamberlain sync [TEMPLATE_LOCATION]`
-runs [Jenkins Job Builder](https://github.com/openstack-infra/jenkins-job-builder) in `TEMPLATE_LOCATION`, which defaults to `~/.chamberlain/template_cache`
+**Flags**
+```
+  -t, --templates   list of directories containing templates (default: [ cwd() ]
+  -w, --workspace   prepare a target template directory
+```
+
+#### `chamberlain sync [REPO1 REPO2 ...]`
+Generates the workspace (using the same procedure as the `generate` command) and runs [Jenkins Job Builder](https://github.com/openstack-infra/jenkins-job-builder) in the application workspace, which defaults to `~/.chamberlain/workspace`
 
 ## Contributing
 - make your changes
