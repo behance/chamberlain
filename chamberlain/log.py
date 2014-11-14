@@ -1,12 +1,25 @@
-import logging
+from termcolor import cprint
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
 
-ch = logging.StreamHandler()
-ch.setFormatter(logging.Formatter("%(message)s"))
-logger.addHandler(ch)
+class Logger:
+    def title(self, msg):
+        cprint(msg, attrs=["underline", "bold"])
+
+    def bold(self, msg):
+        cprint(msg, attrs=["bold"])
+
+    def etc(self, msg):
+        cprint(msg, "blue")
+
+    def info(self, msg):
+        cprint(msg, "green")
+
+    def debug(self, msg):
+        cprint(msg, "cyan")
+
+    def error(self, msg):
+        cprint(msg, "red")
 
 
 def instance():
-    return logger
+    return Logger()

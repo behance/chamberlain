@@ -1,4 +1,5 @@
 import chamberlain.application as chap  # lols
+import chamberlain.jenkins.configuration as jenkins_cfg
 import os
 
 from abc import ABCMeta, abstractmethod
@@ -12,6 +13,7 @@ class Command(object):
         self.log = log
         self.app = chap.Application(log)
         self.app.load_config(config_file)
+        self.mapping = None
 
     @abstractmethod
     def description(self, opts):
@@ -33,10 +35,12 @@ class Command(object):
                             default=False,
                             help="Force repository sync, ignoring cache.")
 
-    def repo_job_mapping(self, opts):
-        repos = self.app.github().repo_list(force_sync=opts.force,
-                                            filters=opts.repos)
-        return self.app.repo_mapper().map_configs(repos)
+    def repo_job_mapping(self, opts, force=False):
+        if self.mapping is None or force:
+            repos = self.app.github().repo_list(force_sync=opts.force,
+                                                filters=opts.repos)
+            self.mapping = self.app.repo_mapper().map_configs(repos)
+        return self.mapping
 
 
 class GenerateTemplatesCommand(Command):
@@ -60,7 +64,7 @@ class GenerateTemplatesCommand(Command):
         return "Generate templates & project groups from template files."
 
     def execute(self, opts):
-        self.log.info("Generating templates in %s" % opts.workspace)
+        self.log.title("Generating templates in %s" % opts.workspace)
         self.app.workspace.set_dir(opts.workspace)
         self.log.info("Cleaning %s ..." % self.app.workspace._wdir)
         self.app.workspace.clean()
@@ -83,10 +87,38 @@ class GenerateTemplatesCommand(Command):
                     "sshurl": repo_data.ssh_url(),
                 }
                 yaml = jenkins_template.generate_project(params, templates)
-                self.log.info(yaml + "\n")
+                self.log.etc(yaml + "\n")
                 tname = jenkins_template.template_name(repo)
                 tpath = "%s/%s" % (instance, tname)
                 self.app.workspace.create_file(tpath, yaml)
+
+
+class SyncCommand(GenerateTemplatesCommand):
+    def description(self):
+        return "Generate templates, apply them to Jenkins instances."
+
+    def execute(self, opts):
+        super(SyncCommand, self).execute(opts)
+        seen_instances = []
+        for repo, instances in self.repo_job_mapping(opts).iteritems():
+            for instance in instances.keys():
+                if instance in seen_instances:
+                    continue
+                seen_instances.append(instance)
+                self.log.title("configuring [%s]" % instance)
+                try:
+                    icfg = self.app.config.jenkins.instances()[instance]
+                except KeyError:
+                    self.log.error("no such instance [%s] for"
+                                   " [%s], skipping" % (instance, repo))
+                    continue
+                instance_cfg = jenkins_cfg.InstanceConfig()
+                instance_cfg.override_defaults(icfg)
+                template_path = os.path.join(self.app.workspace._wdir,
+                                             instance)
+                builder_opts = jenkins_cfg.BuilderOptions(template_path)
+                jenkins_cfg.ConfigurationRunner().run(builder_opts,
+                                                      instance_cfg)
 
 
 class ShowMappingCommand(Command):
@@ -96,8 +128,8 @@ class ShowMappingCommand(Command):
     def execute(self, opts):
         # TODO: actually care how I'm doing this
         for repo, instances in self.repo_job_mapping(opts).iteritems():
-            self.log.info(repo)
+            self.log.title(repo)
             for instance, templates in instances.iteritems():
-                self.log.info("\t%s" % instance)
+                self.log.bold("\t%s" % instance)
                 for template in templates:
                     self.log.info("\t\t- %s" % template)
