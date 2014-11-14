@@ -19,6 +19,8 @@ sudo python setup.py install
 
 **lives in `~/.chamberlain/config.json`, automatically created if DNE**
 
+**Example:**
+
 ```ruby
 {
     "github": {
@@ -31,14 +33,27 @@ sudo python setup.py install
         ]
     },
     "jenkins": {
-        "instances": [
-            {
-                "name": "bejankins",
-                "host": "http://bejankins.dev-be-aws.net:8080",
-                "token": "67a374b31117d62ba3798a11f138ba93"
+        "instances": {
+            "bejankins": {
+                "jenkins": {
+                    "url": "http://bejankins.net:8080",
+                    "user": "behance-qe",
+                    "password": "password"
+                },
+                "job_builder": {
+                    "ignore_cache": "true"
+                }
             }
-        ],
+        },
         "jobs": [
+            {
+                "instance": "ci-jenkins",
+                "owner": "behanceops",
+                "repo": "bephp",
+                "templates": [
+                    "{repo}-integrations"
+                ]
+            },
             {
                 "instance": "bejankins",
                 "owner": "behanceops",
@@ -61,6 +76,41 @@ sudo python setup.py install
     }
 }
 ```
+
+**NOTE**: all values in the instance configs should be strings. Also, the config values mirror the [configuration file for jenkins job builder](http://ci.openstack.org/jenkins-job-builder/installation.html#configuration-file).
+
+i.e.:
+
+```ruby
+  ...
+
+            "bejankins": {
+                "jenkins": {
+                    "url": "http://bejankins.net:8080",
+                    "user": "behance-qe",
+                    "password": "password"
+                },
+                "job_builder": {
+                    "ignore_cache": "true"
+                }
+            }
+
+  ...
+```
+
+is the equivalent of this in Jenkins Job Builder:
+
+```
+[job_builder]
+ignore_cache=True
+
+[jenkins]
+user=behance-qe
+password=password
+url=http://bejankins.net:8080
+```
+
+Default values for these configs can be found in the `chamberlain.jenkins.configuration` module.
 
 ## Usage
 
@@ -94,6 +144,8 @@ Given directories with YAML templates, prepares a workspace and generates projec
 
 #### `chamberlain sync [REPO1 REPO2 ...]`
 Generates the workspace (using the same procedure as the `generate` command) and runs [Jenkins Job Builder](https://github.com/openstack-infra/jenkins-job-builder) in the application workspace, which defaults to `~/.chamberlain/workspace`
+
+Same flags as the `generate` command.
 
 ## Contributing
 - make your changes
