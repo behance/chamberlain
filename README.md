@@ -123,6 +123,7 @@ Default values for these configs can be found in the `chamberlain.jenkins.config
 **e.g.**: `chamberlain generate behance/repo1 matcher_word`
 
 Internally, the list of repos that is generated for the commands to use will be filtered based on partial matches for `behance/repo1` and `matcher_word`
+Can also be a regex.
 
 ### Commands
 

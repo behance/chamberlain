@@ -1,9 +1,16 @@
 import os
+import re
 
 from chamberlain.config import Config
 from chamberlain.files import load_json_file, write_json_file
 from chamberlain.repo import repo_hash
 from github3 import GitHub
+
+
+def repo_match(repo, matcher):
+    partial_match = repo in matcher or matcher in repo
+    regex_match = re.search(matcher, repo) is not None
+    return partial_match or regex_match
 
 
 class Client:
@@ -40,7 +47,7 @@ class Client:
             return [
                 repo
                 for repo in self.repos
-                if any(repo.name() in r or r in repo.name() for r in filters)
+                if any(repo_match(repo.full_name(), r) for r in filters)
             ]
         return self.repos
 
