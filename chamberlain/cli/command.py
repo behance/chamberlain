@@ -1,4 +1,5 @@
 import chamberlain.application as chap  # lols
+import chamberlain.jenkins.configuration as jenkins_cfg
 import os
 
 from abc import ABCMeta, abstractmethod
@@ -12,6 +13,7 @@ class Command(object):
         self.log = log
         self.app = chap.Application(log)
         self.app.load_config(config_file)
+        self.mapping = None
 
     @abstractmethod
     def description(self, opts):
@@ -33,10 +35,12 @@ class Command(object):
                             default=False,
                             help="Force repository sync, ignoring cache.")
 
-    def repo_job_mapping(self, opts):
-        repos = self.app.github().repo_list(force_sync=opts.force,
-                                            filters=opts.repos)
-        return self.app.repo_mapper().map_configs(repos)
+    def repo_job_mapping(self, opts, force=False):
+        if self.mapping is None or force:
+            repos = self.app.github().repo_list(force_sync=opts.force,
+                                                filters=opts.repos)
+            self.mapping = self.app.repo_mapper().map_configs(repos)
+        return self.mapping
 
 
 class GenerateTemplatesCommand(Command):
@@ -87,6 +91,29 @@ class GenerateTemplatesCommand(Command):
                 tname = jenkins_template.template_name(repo)
                 tpath = "%s/%s" % (instance, tname)
                 self.app.workspace.create_file(tpath, yaml)
+
+
+class SyncCommand(GenerateTemplatesCommand):
+    def description(self):
+        return "Generate templates, apply them to Jenkins instances."
+
+    def execute(self, opts):
+        super(SyncCommand, self).execute(opts)
+        for repo, instances in self.repo_job_mapping(opts).iteritems():
+            for instance in instances.keys():
+                try:
+                    icfg = self.app.config.instances()[instance]
+                except KeyError:
+                    self.log.error("no such instance [%s]\
+                                    for %s" % (instance, repo))
+                instance_cfg = jenkins_cfg.InstanceConfig()
+                instance_cfg.override_defaults(icfg)
+                template_path = os.path.join(self.app.workspace._wdir,
+                                             instance)
+                builder_opts = jenkins_cfg.BuilderOptions()
+                builder_opts.set_path(template_path)
+                jenkins_cfg.ConfigurationRunner().run(builder_opts,
+                                                      instance_cfg)
 
 
 class ShowMappingCommand(Command):

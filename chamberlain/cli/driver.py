@@ -15,7 +15,8 @@ def version():
 def command_hash():
     return {
         "map": cli_commands.ShowMappingCommand,
-        "generate": cli_commands.GenerateTemplatesCommand
+        "generate": cli_commands.GenerateTemplatesCommand,
+        "sync": cli_commands.SyncCommand
     }
 
 
