@@ -64,7 +64,7 @@ class GenerateTemplatesCommand(Command):
         return "Generate templates & project groups from template files."
 
     def execute(self, opts):
-        self.log.info("Generating templates in %s" % opts.workspace)
+        self.log.title("Generating templates in %s" % opts.workspace)
         self.app.workspace.set_dir(opts.workspace)
         self.log.info("Cleaning %s ..." % self.app.workspace._wdir)
         self.app.workspace.clean()
@@ -87,7 +87,7 @@ class GenerateTemplatesCommand(Command):
                     "sshurl": repo_data.ssh_url(),
                 }
                 yaml = jenkins_template.generate_project(params, templates)
-                self.log.info(yaml + "\n")
+                self.log.etc(yaml + "\n")
                 tname = jenkins_template.template_name(repo)
                 tpath = "%s/%s" % (instance, tname)
                 self.app.workspace.create_file(tpath, yaml)
@@ -99,19 +99,24 @@ class SyncCommand(GenerateTemplatesCommand):
 
     def execute(self, opts):
         super(SyncCommand, self).execute(opts)
+        seen_instances = []
         for repo, instances in self.repo_job_mapping(opts).iteritems():
             for instance in instances.keys():
+                if instance in seen_instances:
+                    continue
+                seen_instances.append(instance)
+                self.log.title("configuring [%s]" % instance)
                 try:
-                    icfg = self.app.config.instances()[instance]
+                    icfg = self.app.config.jenkins.instances()[instance]
                 except KeyError:
-                    self.log.error("no such instance [%s]\
-                                    for %s" % (instance, repo))
+                    self.log.error("no such instance [%s] for"
+                                   " [%s], skipping" % (instance, repo))
+                    continue
                 instance_cfg = jenkins_cfg.InstanceConfig()
                 instance_cfg.override_defaults(icfg)
                 template_path = os.path.join(self.app.workspace._wdir,
                                              instance)
-                builder_opts = jenkins_cfg.BuilderOptions()
-                builder_opts.set_path(template_path)
+                builder_opts = jenkins_cfg.BuilderOptions(template_path)
                 jenkins_cfg.ConfigurationRunner().run(builder_opts,
                                                       instance_cfg)
 
@@ -123,8 +128,8 @@ class ShowMappingCommand(Command):
     def execute(self, opts):
         # TODO: actually care how I'm doing this
         for repo, instances in self.repo_job_mapping(opts).iteritems():
-            self.log.info(repo)
+            self.log.title(repo)
             for instance, templates in instances.iteritems():
-                self.log.info("\t%s" % instance)
+                self.log.bold("\t%s" % instance)
                 for template in templates:
                     self.log.info("\t\t- %s" % template)
