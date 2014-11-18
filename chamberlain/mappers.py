@@ -38,7 +38,7 @@ class TemplateFetcher():
             return []
         if self.forks_only and repo.fork():
             return []
-        if repo.name() in self.excludes():
+        if self.cfg.include.exists() and repo.name() not in self.cfg.include():
             return []
         return self.cfg.templates()
 

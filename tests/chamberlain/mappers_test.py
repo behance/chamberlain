@@ -37,6 +37,13 @@ class TemplateFetcherTest(unittest.TestCase):
         self.meta["exclude"] = ["repo_name"]
         self.assertEquals(self.fixture_templates(), [])
 
+    def test_included_repo_returns_nothing(self):
+        self.repo["owner"] = "bar"
+        self.repo["private"] = True
+        self.meta["owner"] = "bar"
+        self.meta["include"] = ["other_repo"]
+        self.assertEquals(self.fixture_templates(), [])
+
     def test_repo_takes_precedence(self):
         self.repo["owner"] = "bar"
         self.repo["private"] = True
@@ -64,6 +71,13 @@ class TemplateFetcherTest(unittest.TestCase):
         self.meta["owner"] = "bar"
         self.repo["private"] = True
         self.meta["repo"] = "repo_name"
+        self.assertEquals(self.fixture_templates(), ["a", "b"])
+
+    def test_repo_included(self):
+        self.repo["owner"] = "bar"
+        self.repo["private"] = True
+        self.meta["owner"] = "bar"
+        self.meta["include"] = ["repo_name"]
         self.assertEquals(self.fixture_templates(), ["a", "b"])
 
     def test_default_case(self):
