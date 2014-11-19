@@ -37,10 +37,11 @@ class Client:
 
     def repo_data(self, repo, force_sync=False):
         repos = self.repo_list(force_sync=force_sync, filters=[repo])
-        if len(repos) > 1 and any([r.name() == repo for r in repos]):
-            raise RuntimeWarning("'%s' returned multiple repos with no exact\
-            matches. use repo_list instead if this was desired" % repo)
-        return repos.pop()
+        if len(repos) > 1 and not any([r.full_name() == repo for r in repos]):
+            raise RuntimeWarning("'%s' returned multiple repos with no exact"
+                                 " matches. use repo_list() instead if this"
+                                 " was desired" % repo)
+        return next(r for r in repos if r.full_name() == repo)
 
     def filter_repos(self, filters):
         if len(filters) > 0:
