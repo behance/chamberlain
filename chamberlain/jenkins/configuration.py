@@ -20,10 +20,10 @@ class InstanceConfig(JJBConfig):
         self.set("jenkins", "user", "")
         self.set("jenkins", "password", "")
         self.add_section("job_builder")
-        self.set("job_builder", "allow_duplicates", "false")
-        self.set("job_builder", "ignore_cache", "true")
-        self.set("job_builder", "keep_descriptions", "false")
-        self.set("job_builder", "recursive", "true")
+        self.set("job_builder", "allow_duplicates", "False")
+        self.set("job_builder", "ignore_cache", "True")
+        self.set("job_builder", "keep_descriptions", "False")
+        self.set("job_builder", "recursive", "True")
 
 
 class BuilderOptions(object):

@@ -78,8 +78,6 @@ class GenerateTemplatesCommand(Command):
             for instance, templates in instances.iteritems():
                 if instance not in seen_instances:
                     self.app.workspace.create_subdir(instance)
-                    workspace_tpl = self.app.workspace.template_subdir()
-                    self.app.workspace.copy_contents(workspace_tpl, instance)
                     seen_instances.append(instance)
                 params = {
                     "name": "%s-%s" % (instance, repo),
@@ -114,9 +112,11 @@ class SyncCommand(GenerateTemplatesCommand):
                     continue
                 instance_cfg = jenkins_cfg.InstanceConfig()
                 instance_cfg.override_defaults(icfg)
-                template_path = os.path.join(self.app.workspace._wdir,
+                instance_path = os.path.join(self.app.workspace._wdir,
                                              instance)
-                builder_opts = jenkins_cfg.BuilderOptions(template_path)
+                tmpl_path = "%s:%s" % (self.app.workspace.template_subdir(),
+                                       instance_path)
+                builder_opts = jenkins_cfg.BuilderOptions(tmpl_path)
                 jenkins_cfg.ConfigurationRunner().run(builder_opts,
                                                       instance_cfg)
 
