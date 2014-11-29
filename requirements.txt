@@ -1,5 +1,11 @@
 pbr>=0.8.2,<1.0
-github3.py==0.9.2
 PyYAML==3.11
 termcolor==1.1.0
+argparse
+ordereddict
+six>=1.5.2
+
+github3.py==0.9.2
+
+python-jenkins>=0.3.4
 jenkins-job-builder==1.0.0
