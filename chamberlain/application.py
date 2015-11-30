@@ -104,7 +104,7 @@ class Application:
         if instance_name not in configs:
             raise RuntimeError("Unknown instance: %s" % instance_name)
         if "jenkins" not in configs[instance_name]:
-            raise RuntimeError("Configuration for %s malformed" % instance_name)
+            raise RuntimeError("Config for %s malformed" % instance_name)
         configs = configs[instance_name]["jenkins"]
         url = configs["url"]
         user = configs["user"]

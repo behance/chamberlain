@@ -1,5 +1,5 @@
 import chamberlain.application as chap  # lols
-import jenkins
+
 
 class Command(object):
     def __init__(self, log, config_file=None):
@@ -15,7 +15,7 @@ class Command(object):
         parser.add_argument("-l",
                             "--log-filter",
                             default="",
-                            help="Search for specific text in connection logs.")
+                            help="Search for specific text in connection logs")
         parser.add_argument("-s",
                             "--status-filter",
                             default=None,
