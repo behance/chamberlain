@@ -1,10 +1,9 @@
 from abc import ABCMeta, abstractmethod
 from chamberlain.config import Config
-from sets import Set
 
 
 def merge_set_lists(list1, list2):
-    return list(Set(list1 + list2))
+    return list(set(list1 + list2))
 
 
 class Mapper():
@@ -62,7 +61,7 @@ class RepoMapper(Mapper):
                     mappings[repo.full_name()][instance] = []
                 merge_list = mappings[repo.full_name()][instance]
                 merge_list += templates
-                mappings[repo.full_name()][instance] = list(Set(merge_list))
+                mappings[repo.full_name()][instance] = list(set(merge_list))
         return mappings
 
     def filter_repo_jobs(self, repo):
