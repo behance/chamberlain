@@ -16,7 +16,7 @@ class Command(object):
         self.mapping = None
 
     @abstractmethod
-    def description(self, opts):
+    def description(self):
         return ""
 
     @abstractmethod

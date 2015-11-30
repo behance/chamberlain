@@ -1,5 +1,8 @@
+from __future__ import absolute_import
+
 import os
 import shutil
+import jenkins
 
 from chamberlain.config import Config
 from chamberlain.files import load_json_file, write_file
@@ -95,6 +98,18 @@ class Application:
 
     def github(self):
         return GHClient(self.config.github, cache_dir=app_home())
+
+    def jenkins(self, instance_name):
+        configs = self.config.jenkins.instances()
+        if instance_name not in configs:
+            raise RuntimeError("Unknown instance: %s" % instance_name)
+        if "jenkins" not in configs[instance_name]:
+            raise RuntimeError("Configuration for %s malformed" % instance_name)
+        configs = configs[instance_name]["jenkins"]
+        url = configs["url"]
+        user = configs["user"]
+        password = configs["password"]
+        return jenkins.Jenkins(url, username=user, password=password)
 
     def repo_mapper(self):
         return RepoMapper(self.config.jenkins.jobs())

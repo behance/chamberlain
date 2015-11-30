@@ -6,6 +6,9 @@ import chamberlain.log as log
 import chamberlain.version as chamberlain_version
 import sys
 
+from chamberlain.cli.command import ShowMappingCommand, GenerateTemplatesCommand, SyncCommand
+from chamberlain.cli.command.nodes import Command as NodesCommand
+
 
 def version():
     return "Chamberlain version: %s" % \
@@ -14,9 +17,10 @@ def version():
 
 def command_hash():
     return {
-        "map": cli_commands.ShowMappingCommand,
-        "generate": cli_commands.GenerateTemplatesCommand,
-        "sync": cli_commands.SyncCommand
+        "map": ShowMappingCommand,
+        "generate": GenerateTemplatesCommand,
+        "sync": SyncCommand,
+        "nodes": NodesCommand
     }
 
 
