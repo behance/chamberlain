@@ -71,3 +71,14 @@ class Command(object):
                 p in [f.split(":", 1) for f in opts.field_filters]}
             if not self.attr_wanted(node, filters=attr_filters): continue
             self.print_node(node, attrs=attr_filters.keys())
+            if opts.action == "noop": continue
+            node_name = node["displayName"]
+            try:
+                prog_verb = opts.action[0:-1]
+                self.log.info("%sing %s ..." % (prog_verb, node_name))
+                if opts.action == "disable": conn.disable_node(node_name)
+                if opts.action == "enable": conn.enable_node(node_name)
+                if opts.action == "delete": conn.delete_node(node_name)
+            except Exception as e:
+                log_params = (opts.action, node_name, e)
+                self.log.error("Failed to %s %s: %s" % log_params)
