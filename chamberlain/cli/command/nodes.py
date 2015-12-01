@@ -15,10 +15,11 @@ class Command(object):
         return "Get a list of nodes with filters."
 
     def configure_parser(self, parser):
-        parser.add_argument("-l",
-                            "--log-filter",
-                            default="",
-                            help="Search for specific text in connection logs")
+        parser.add_argument("-f",
+                            "--field-filters",
+                            nargs="*",
+                            default=[],
+                            help="Search for specific text in an attr")
         parser.add_argument("-s",
                             "--status-filter",
                             default="",
@@ -30,15 +31,24 @@ class Command(object):
                                  "configuration in chamberlain config")
         parser.add_argument("-a",
                             "--action",
-                            default="",
+                            default="noop",
                             help="An action to perform on the nodes "
-                                 "[delete,disable,enable]")
+                                 "[delete,disable,enable,noop]")
 
-    def print_node(self, node):
+    def print_node(self, node, attrs=[]):
         wrapper = Config(node)
         self.log.title(wrapper.displayName())
         self.log.info("  - offline: %s" % wrapper.offline())
         self.log.info("  - idle: %s" % wrapper.idle())
+        for key in attrs:
+            self.log.info("  - %s: %s" % (key, node[key]))
+
+    def attr_wanted(self, node, filters={}):
+        if len(filters) == 0: return True
+        for k,v in filters.iteritems():
+            if k not in node: continue
+            if node[k] == v or v in node[k]: return True
+        return False
 
     def wanted_node(self, node, filters=[]):
         if len(filters) == 0: return True
@@ -54,9 +64,10 @@ class Command(object):
 
     def execute(self, opts):
         conn = self.app.jenkins(opts.instance)
-        stats = opts.status_filter.split(",")
-        actions = opts.action.split(",")
         for node in [conn.get_node_info(n["name"])
             for n in conn.get_nodes() if n["name"] != "master"]:
-            if not self.wanted_node(node, filters=stats): continue
-            self.print_node(node)
+            if not self.wanted_node(node, filters=opts.status_filter): continue
+            attr_filters = {p[0]:p[1] for
+                p in [f.split(":", 1) for f in opts.field_filters]}
+            if not self.attr_wanted(node, filters=attr_filters): continue
+            self.print_node(node, attrs=attr_filters.keys())
