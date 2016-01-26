@@ -5,9 +5,11 @@ import chamberlain.log as log
 import chamberlain.version as chamberlain_version
 import sys
 
-from chamberlain.cli.command import ShowMappingCommand, \
-                                    GenerateTemplatesCommand, SyncCommand
-from chamberlain.cli.command.nodes import Command as NodesCommand
+from chamberlain.cli.command.templates import ShowMappingCommand, \
+                                              GenerateTemplatesCommand, \
+                                              SyncCommand
+from chamberlain.cli.command.nodes import \
+    Command as NodesCommand
 
 
 def version():
