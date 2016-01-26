@@ -32,11 +32,18 @@ class TemplatesCommand(Base):
                             type=str,
                             default=os.path.join(chap.app_home(), "workspace"),
                             help="prepare a target template directory")
+        parser.add_argument("--file-filter",
+                            nargs="*",
+                            default=[],
+                            help="Only act on repo if it contains a file, or"
+                                 "all given files")
 
     def repo_job_mapping(self, opts, force=False):
         if self.mapping is None or force:
-            repos = self.app.github().repo_list(force_sync=opts.force,
-                                                filters=opts.repos)
+            gh_client = self.app.github()
+            repos = gh_client.repo_list(force_sync=opts.force,
+                                        filters=opts.repos,
+                                        file_filters=opts.file_filter)
             self.mapping = self.app.repo_mapper().map_configs(repos)
         return self.mapping
 
