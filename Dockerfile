@@ -5,3 +5,5 @@ RUN mkdir /root/.chamberlain
 ADD     . /opt/chamberlain
 WORKDIR /opt/chamberlain
 RUN make
+
+ENTRYPOINT [ "chamberlain" ]

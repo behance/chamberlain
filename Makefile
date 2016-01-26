@@ -12,11 +12,11 @@ test: ci-install
 
 docker-ci-test:
 		docker build --tag behance/chamberlain-$$(git rev-parse HEAD) .
-		docker run --rm behance/chamberlain-$$(git rev-parse HEAD) make test
+		docker run --rm --entrypoint make behance/chamberlain-$$(git rev-parse HEAD) test
 		docker rmi -f behance/chamberlain-$$(git rev-parse HEAD)
 
 docker-test:
-		docker run --rm -v $$(pwd):/opt/chamberlain --workdir /opt/chamberlain python:2.7 make test
+		docker run --rm -v $$(pwd):/opt/chamberlain --workdir /opt/chamberlain python:2.7 test
 
 clean:
 		rm -rf /usr/local/lib/**/site-packages/chamberlain
