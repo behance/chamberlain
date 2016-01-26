@@ -52,7 +52,9 @@ def main(argv=None):
     parser = create_parser()
     options = parser.parse_args(argv)
     if not options.command:
-        parser.error("Must specify a 'command' to be performed")
+        parser.error("Must specify a 'command' to perform")
+    if options.command not in command_hash():
+        parser.error("Unrecognized command '%s'" % options.command)
     command = command_hash()[options.command]
     sys.exit(command(log.instance(),
                      options.config).execute(options))
