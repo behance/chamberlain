@@ -10,6 +10,8 @@ from chamberlain.cli.command.templates import ShowMappingCommand, \
                                               SyncCommand
 from chamberlain.cli.command.nodes import \
     Command as NodesCommand
+from chamberlain.cli.command.list import \
+    InstancesCommand as ListInstancesCommand
 
 
 def version():
@@ -22,6 +24,7 @@ def command_hash():
         "map": ShowMappingCommand,
         "generate": GenerateTemplatesCommand,
         "sync": SyncCommand,
+        "instances": ListInstancesCommand,
         "nodes": NodesCommand
     }
 
