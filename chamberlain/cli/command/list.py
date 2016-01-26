@@ -11,6 +11,6 @@ class InstancesCommand(Base):
             if not details["jenkins"]:
                 self.log.error("\tinvalid config")
             if details["jenkins"]["url"]:
-                self.log.info("\t- %s" %  details["jenkins"]["url"])
+                self.log.info("\t- %s" % details["jenkins"]["url"])
             if details["jenkins"]["user"]:
                 self.log.info("\t- %s" % details["jenkins"]["user"])

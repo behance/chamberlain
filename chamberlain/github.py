@@ -1,4 +1,5 @@
-import os, re
+import os
+import re
 from copy import copy
 
 from chamberlain.config import Config
@@ -62,8 +63,8 @@ class Client:
             repos = [
                 repo
                 for repo in repos
-                if all(self.repo_has_file(repo.owner(), repo.name(), path) \
-                    for path in file_filters)
+                if all(self.repo_has_file(repo.owner(), repo.name(), path)
+                       for path in file_filters)
             ]
         return repos
 

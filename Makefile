@@ -5,12 +5,18 @@ install:
 		python setup.py install
 
 ci-install:
-		pip install virtualenv
-		virtualenv -p /usr/bin/python2.7 .virtualenv
-		.virtualenv/bin/pip install -r requirements.txt -r test-requirements.txt
+		pip install -r requirements.txt -r test-requirements.txt
 
 test: ci-install
-		.virtualenv/bin/tox
+		tox
+
+docker-ci-test:
+		docker build --tag behance/chamberlain-$$(git rev-parse HEAD) .
+		docker run --rm behance/chamberlain-$$(git rev-parse HEAD) make test
+		docker rmi -f behance/chamberlain-$$(git rev-parse HEAD)
+
+docker-test:
+		docker run --rm -v $$(pwd):/opt/chamberlain --workdir /opt/chamberlain python:2.7 make test
 
 clean:
 		rm -rf /usr/local/lib/**/site-packages/chamberlain
