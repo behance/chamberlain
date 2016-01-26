@@ -5,9 +5,13 @@ import chamberlain.log as log
 import chamberlain.version as chamberlain_version
 import sys
 
-from chamberlain.cli.command import ShowMappingCommand, \
-                                    GenerateTemplatesCommand, SyncCommand
-from chamberlain.cli.command.nodes import Command as NodesCommand
+from chamberlain.cli.command.templates import ShowMappingCommand, \
+                                              GenerateTemplatesCommand, \
+                                              SyncCommand
+from chamberlain.cli.command.nodes import \
+    Command as NodesCommand
+from chamberlain.cli.command.list import \
+    InstancesCommand as ListInstancesCommand
 
 
 def version():
@@ -20,6 +24,7 @@ def command_hash():
         "map": ShowMappingCommand,
         "generate": GenerateTemplatesCommand,
         "sync": SyncCommand,
+        "instances": ListInstancesCommand,
         "nodes": NodesCommand
     }
 
@@ -50,7 +55,9 @@ def main(argv=None):
     parser = create_parser()
     options = parser.parse_args(argv)
     if not options.command:
-        parser.error("Must specify a 'command' to be performed")
+        parser.error("Must specify a 'command' to perform")
+    if options.command not in command_hash():
+        parser.error("Unrecognized command '%s'" % options.command)
     command = command_hash()[options.command]
     sys.exit(command(log.instance(),
                      options.config).execute(options))

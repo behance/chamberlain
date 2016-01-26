@@ -13,13 +13,14 @@ class ClientTest(unittest.TestCase):
         self.client.repos = []
         self.assertEquals(self.client.repo_list(), [])
 
+    # TODO: file filter test
     def test_filter(self):
         valid_list = [
             Config({"full_name": "foobar"}),
             Config({"full_name": "foobaz"})
         ]
         self.client.repos = valid_list + [Config({"full_name": "floobygoop"})]
-        self.assertEquals(self.client.filter_repos(["fooba"]), valid_list)
+        self.assertEquals(self.client.filter_repos(["fooba"], []), valid_list)
 
     def test_repo_data(self):
         repo = "user/test"
