@@ -16,7 +16,7 @@ docker-ci-test:
 		docker rmi -f behance/chamberlain-$$(git rev-parse HEAD)
 
 docker-test:
-		docker run --rm -v $$(pwd):/opt/chamberlain --workdir /opt/chamberlain python:2.7 test
+		docker run --rm -v $$(pwd):/opt/chamberlain --workdir /opt/chamberlain python:2.7 make test
 
 clean:
 		rm -rf /usr/local/lib/**/site-packages/chamberlain

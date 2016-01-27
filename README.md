@@ -70,7 +70,7 @@ sudo python setup.py install
 }
 ```
 
-**NOTE**: all values in the instance configs should be strings. Also, the config values mirror the [configuration file for jenkins job builder](http://ci.openstack.org/jenkins-job-builder/installation.html#configuration-file).
+**NOTE**: all values in the instance configs should be strings. Also, the config values mirror the [configuration file for jenkins job builder](http://docs.openstack.org/infra/jenkins-job-builder/execution.html#configuration-file).
 
 i.e.:
 
