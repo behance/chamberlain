@@ -6,5 +6,6 @@ def repo_hash(repo):
         "name": repo.name,
         "ssh_url": repo.ssh_url,
         "private": repo.private,
-        "fork": repo.fork
+        "fork": repo.fork,
+        "html_url": repo.html_url
     }
