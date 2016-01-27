@@ -24,6 +24,7 @@ class InstanceConfig(JJBConfig):
         self.set("job_builder", "ignore_cache", "True")
         self.set("job_builder", "keep_descriptions", "False")
         self.set("job_builder", "recursive", "True")
+        self.set("job_builder", "exclude", ".git")
 
 
 class BuilderOptions(object):
