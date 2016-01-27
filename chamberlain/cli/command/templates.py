@@ -49,6 +49,14 @@ class TemplatesCommand(Base):
 
 
 class GenerateTemplatesCommand(TemplatesCommand):
+    def configure_parser(self, parser):
+        parser.add_argument("-p",
+                            "--params",
+                            nargs="*",
+                            default=[],
+                            help="List of params to inject (key:value)")
+        super(GenerateTemplatesCommand, self).configure_parser(parser)
+
     def description(self):
         return "Generate templates & project groups from template files."
 
@@ -63,6 +71,11 @@ class GenerateTemplatesCommand(TemplatesCommand):
         for template_dir in opts.templates:
             self.log.info("\t- %s" % template_dir)
             self.app.workspace.copy_templates(template_dir)
+        user_params = {
+            pieces[0]: pieces[1]
+            for pieces in [p.split(":", 1) for p in opts.params]
+        }
+        self.log.info("Injecting params: %s" % user_params)
         for repo, instances in self.repo_job_mapping(opts).iteritems():
             repo_data = self.app.github().repo_data(repo)
             for instance, templates in instances.iteritems():
@@ -73,7 +86,9 @@ class GenerateTemplatesCommand(TemplatesCommand):
                     "name": "%s-%s" % (instance, repo),
                     "repo": repo_data.name(),
                     "sshurl": repo_data.ssh_url(),
+                    "ghurl": repo_data.html_url()
                 }
+                params.update(user_params)
                 yaml = jenkins_template.generate_project(params, templates)
                 self.log.etc(yaml + "\n")
                 tname = jenkins_template.template_name(repo)
