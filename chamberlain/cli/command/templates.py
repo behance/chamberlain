@@ -35,7 +35,7 @@ class TemplatesCommand(Base):
         parser.add_argument("--file-filter",
                             nargs="*",
                             default=[],
-                            help="Only act on repo if it contains a file, or"
+                            help="Only act on repo if it contains a file, or "
                                  "all given files")
 
     def repo_job_mapping(self, opts, force=False):
@@ -82,6 +82,14 @@ class GenerateTemplatesCommand(TemplatesCommand):
 
 
 class SyncCommand(GenerateTemplatesCommand):
+    def configure_parser(self, parser):
+        parser.add_argument("-i",
+                            "--instances",
+                            nargs="*",
+                            default=[],
+                            help="List of instances to sync. Defaults to ALL.")
+        super(SyncCommand, self).configure_parser(parser)
+
     def description(self):
         return "Generate templates, apply them to Jenkins instances."
 
@@ -93,8 +101,12 @@ class SyncCommand(GenerateTemplatesCommand):
             for instance in instances.keys():
                 if instance in seen_instances:
                     continue
+                if len(opts.instances) > 0:
+                    if instance not in opts.instances:
+                        continue
                 seen_instances.append(instance)
-                self.log.title("configuring [%s]" % instance)
+                self.log.title("configuring [%s] (delegating to jenkins-job-"
+                               "builder)" % instance)
                 try:
                     icfg = self.app.config.jenkins.instances()[instance]
                 except KeyError:
