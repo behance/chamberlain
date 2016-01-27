@@ -32,7 +32,7 @@ class Client:
             return self.filter_repos(filters, file_filters)
         repos = []
         for org_login in self.config.orgs():
-            for repo in self.client.organization(org_login).iter_repos():
+            for repo in self.client.organization(org_login).repositories():
                 repos.append(repo_hash(repo))
         write_json_file(self.cache_file, repos)
         self.repos = [Config(repo) for repo in repos]
