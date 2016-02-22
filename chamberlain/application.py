@@ -17,6 +17,11 @@ def app_home():
         raise "HOME environment variable not set?"
 
 
+def mkdir_if_dne(target):
+    if not os.path.isdir(target):
+        os.mkdir(target)
+
+
 def prep_default_config():
     home = app_home()
     if not os.path.exists(home):
@@ -30,11 +35,16 @@ def prep_default_config():
 
 
 class Workspace():
-    def __init__(self, wdir=None):
+    def __init__(self, wdir=None, libdir=None):
         self._wdir = None
         if wdir is None:
             wdir = self._default_workspace()
         self.set_dir(wdir)
+        self._lib_dir = None
+        if libdir is None:
+            libdir = self._default_libdir()
+        mkdir_if_dne(libdir)
+        self._lib_dir = libdir
 
     def clean(self):
         shutil.rmtree(self._wdir)
@@ -46,28 +56,33 @@ class Workspace():
         directory given actually is different, the contents will be
         copied over
         """
-        if not os.path.isdir(d):
-            os.mkdir(d)
+        mkdir_if_dne(d)
         old_workspace = self._wdir
         self._wdir = d
         if not d == old_workspace and old_workspace is not None:
             self.copy_contents(old_workspace)
 
     def copy_templates(self, in_dir):
+        """
+        copy over lib files, and THEN user files to ensure overwrites
+        """
+        self.copy_contents(self._lib_dir, subdir="templates")
         self.copy_contents(in_dir, subdir="templates")
 
-    def copy_contents(self, in_dir, subdir=""):
-        subdir_fp = os.path.join(self._wdir, subdir)
+    def copy_contents(self, in_dir, subdir="", sourcedir=None):
+        if sourcedir is None:
+            sourcedir = self._wdir
+        subdir_fp = os.path.join(sourcedir, subdir)
         if not os.path.isdir(subdir_fp):
             os.mkdir(subdir_fp)
-        # because shutil.copytree fails when _wdir exists and
+        # because shutil.copytree fails when sourcedir exists and
         # is given as the destination
         for fi in os.listdir(in_dir):
             fpath = os.path.join(in_dir, fi)
             if os.path.isdir(fpath):
-                shutil.copytree(fpath, os.path.join(self._wdir, subdir, fi))
+                shutil.copytree(fpath, os.path.join(sourcedir, subdir, fi))
                 continue
-            shutil.copy(fpath, os.path.join(self._wdir, subdir))
+            shutil.copy(fpath, os.path.join(sourcedir, subdir))
 
     def create_subdir(self, subdir):
         full_path = os.path.join(self._wdir, subdir)
@@ -83,6 +98,9 @@ class Workspace():
 
     def _default_workspace(self):
         return os.path.join(app_home(), "workspace")
+
+    def _default_libdir(self):
+        return os.path.join(app_home(), "libs")
 
 
 class Application:

@@ -12,6 +12,8 @@ from chamberlain.cli.command.nodes import \
     Command as NodesCommand
 from chamberlain.cli.command.list import \
     InstancesCommand as ListInstancesCommand
+from chamberlain.cli.command.libs import \
+    ImportCommand as ImportCommand
 
 
 def version():
@@ -25,7 +27,8 @@ def command_hash():
         "generate": GenerateTemplatesCommand,
         "sync": SyncCommand,
         "instances": ListInstancesCommand,
-        "nodes": NodesCommand
+        "nodes": NodesCommand,
+        "import-templates": ImportCommand
     }
 
 

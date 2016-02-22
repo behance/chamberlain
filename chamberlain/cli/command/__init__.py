@@ -11,6 +11,7 @@ class Base(object):
         self.app = chap.Application(log)
         self.app.load_config(config_file)
         self.mapping = None
+        self.repos = None
 
     @abstractmethod
     def description(self):
