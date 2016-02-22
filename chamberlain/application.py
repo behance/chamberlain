@@ -66,7 +66,7 @@ class Workspace():
         """
         copy over lib files, and THEN user files to ensure overwrites
         """
-        self.copy_contents(self._lib_dir, subdir="templates")
+        self.copy_contents(self._lib_dir, subdir=os.path.join("templates", "libs"))
         self.copy_contents(in_dir, subdir="templates")
 
     def copy_contents(self, in_dir, subdir="", sourcedir=None):
