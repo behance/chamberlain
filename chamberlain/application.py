@@ -19,7 +19,7 @@ def app_home():
 
 def mkdir_if_dne(target):
     if not os.path.isdir(target):
-        os.mkdir(target)
+        os.makedirs(target)
 
 
 def prep_default_config():
@@ -69,20 +69,22 @@ class Workspace():
         self.copy_contents(self._lib_dir, subdir=os.path.join("templates", "libs"))
         self.copy_contents(in_dir, subdir="templates")
 
-    def copy_contents(self, in_dir, subdir="", sourcedir=None):
+    def copy_contents(self, source, subdir="", sourcedir=None):
         if sourcedir is None:
             sourcedir = self._wdir
         subdir_fp = os.path.join(sourcedir, subdir)
-        if not os.path.isdir(subdir_fp):
-            os.mkdir(subdir_fp)
+        mkdir_if_dne(subdir_fp)
+        if os.path.isfile(source) and not os.path.isdir(source):
+            shutil.copy(source, subdir_fp)
+            return
         # because shutil.copytree fails when sourcedir exists and
         # is given as the destination
-        for fi in os.listdir(in_dir):
-            fpath = os.path.join(in_dir, fi)
+        for fi in os.listdir(source):
+            fpath = os.path.join(source, fi)
             if os.path.isdir(fpath):
-                shutil.copytree(fpath, os.path.join(sourcedir, subdir, fi))
+                shutil.copytree(fpath, os.path.join(subdir_fp, fi))
                 continue
-            shutil.copy(fpath, os.path.join(sourcedir, subdir))
+            shutil.copy(fpath, subdir_fp)
 
     def create_subdir(self, subdir):
         full_path = os.path.join(self._wdir, subdir)
