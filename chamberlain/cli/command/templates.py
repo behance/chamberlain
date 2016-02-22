@@ -72,11 +72,9 @@ class OrgTemplatesCommand(TemplatesCommand):
                                   (default: [ cwd() ]")
         super(OrgTemplatesCommand, self).configure_parser(parser)
 
-    def repo_job_mapping(self, opts, force=False):
+    def repo_job_mapping(self, repos, file_filter, force=False):
         if self.mapping is None or force:
-            repos = self.repos(opts.repos,
-                               opts.file_filter,
-                               force=(opts.force or force))
+            repos = self.fetch_repos(filters=repos, files=file_filter, force=force)
             self.mapping = self.app.repo_mapper().map_configs(repos)
         return self.mapping
 
@@ -108,8 +106,11 @@ class GenerateTemplatesCommand(OrgTemplatesCommand):
             pieces[0]: pieces[1]
             for pieces in [p.split(":", 1) for p in opts.params]
         }
-        self.log.info("Injecting params: %s" % user_params)
-        for repo, instances in self.repo_job_mapping(opts).iteritems():
+        if bool(user_params):
+            self.log.info("Injecting params: %s" % user_params)
+        for repo, instances in self.repo_job_mapping(opts.repos,
+                                                     opts.file_filter,
+                                                     opts.force).iteritems():
             repo_data = self.app.github().repo_data(repo)
             for instance, templates in instances.iteritems():
                 if instance not in seen_instances:
@@ -144,7 +145,9 @@ class SyncCommand(GenerateTemplatesCommand):
     def execute(self, opts):
         super(SyncCommand, self).execute(opts)
         seen_instances = []
-        for repo, instances in self.repo_job_mapping(opts).iteritems():
+        for repo, instances in self.repo_job_mapping(opts.repos,
+                                                     opts.file_filter,
+                                                     opts.force).iteritems():
             for instance in instances.keys():
                 if instance in seen_instances:
                     continue
@@ -169,7 +172,9 @@ class ShowMappingCommand(OrgTemplatesCommand):
 
     def execute(self, opts):
         # TODO: actually care how I'm doing this
-        for repo, instances in self.repo_job_mapping(opts).iteritems():
+        for repo, instances in self.repo_job_mapping(opts.repos,
+                                                     opts.file_filter,
+                                                     opts.force).iteritems():
             self.log.title(repo)
             for instance, templates in instances.iteritems():
                 self.log.bold("\t%s" % instance)
