@@ -9,11 +9,18 @@ from chamberlain.repo import repo_hash
 import github3.null
 from github3 import GitHub
 
+sshMatchRegexp = "^git@[a-zA-Z.-]*:[a-zA-Z-.]*/[a-zA-Z-.]*"
+schemeMatchRegexp = "^(https|ssh)://[a-zA-Z.-]*/[a-zA-Z-.]*/[a-zA-Z-.]*"
+
 
 def repo_match(repo, matcher):
     partial_match = repo in matcher or matcher in repo
     regex_match = re.search(matcher, repo) is not None
     return partial_match or regex_match
+
+
+def is_url(url):
+    return re.match(sshMatchRegexp, url) or re.match(schemeMatchRegexp, url)
 
 
 class Client:

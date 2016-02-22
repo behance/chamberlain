@@ -16,9 +16,11 @@ def app_home():
     except KeyError:
         raise "HOME environment variable not set?"
 
+
 def mkdir_if_dne(target):
-     if not os.path.isdir(d):
-        os.mkdir(d)
+    if not os.path.isdir(target):
+        os.mkdir(target)
+
 
 def prep_default_config():
     home = app_home()
@@ -39,9 +41,10 @@ class Workspace():
             wdir = self._default_workspace()
         self.set_dir(wdir)
         self._lib_dir = None
-        if libdir = None:
+        if libdir is None:
             libdir = self._default_libdir()
-         mkdir_if_dne(libdir)
+        mkdir_if_dne(libdir)
+        self._lib_dir = libdir
 
     def clean(self):
         shutil.rmtree(self._wdir)
@@ -66,18 +69,20 @@ class Workspace():
         self.copy_contents(self._lib_dir, subdir="templates")
         self.copy_contents(in_dir, subdir="templates")
 
-    def copy_contents(self, in_dir, subdir=""):
-        subdir_fp = os.path.join(self._wdir, subdir)
+    def copy_contents(self, in_dir, subdir="", sourcedir=None):
+        if sourcedir is None:
+            sourcedir = self._wdir
+        subdir_fp = os.path.join(sourcedir, subdir)
         if not os.path.isdir(subdir_fp):
             os.mkdir(subdir_fp)
-        # because shutil.copytree fails when _wdir exists and
+        # because shutil.copytree fails when sourcedir exists and
         # is given as the destination
         for fi in os.listdir(in_dir):
             fpath = os.path.join(in_dir, fi)
             if os.path.isdir(fpath):
-                shutil.copytree(fpath, os.path.join(self._wdir, subdir, fi))
+                shutil.copytree(fpath, os.path.join(sourcedir, subdir, fi))
                 continue
-            shutil.copy(fpath, os.path.join(self._wdir, subdir))
+            shutil.copy(fpath, os.path.join(sourcedir, subdir))
 
     def create_subdir(self, subdir):
         full_path = os.path.join(self._wdir, subdir)
