@@ -7,7 +7,8 @@ import sys
 
 from chamberlain.cli.command.templates import ShowMappingCommand, \
                                               GenerateTemplatesCommand, \
-                                              SyncCommand
+                                              SyncCommand, \
+                                              ProvisionLocalRepoCommand
 from chamberlain.cli.command.nodes import \
     Command as NodesCommand
 from chamberlain.cli.command.list import \
@@ -28,6 +29,7 @@ def command_hash():
         "sync": SyncCommand,
         "instances": ListInstancesCommand,
         "nodes": NodesCommand,
+        "gh-sync": ProvisionLocalRepoCommand,
         "import-templates": ImportCommand
     }
 

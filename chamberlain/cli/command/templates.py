@@ -3,6 +3,7 @@ from abc import ABCMeta
 
 import chamberlain.application as chap  # lols
 import chamberlain.jenkins.configuration as jenkins_cfg
+import chamberlain.git as git
 from chamberlain.cli.command import Base
 
 
@@ -14,6 +15,13 @@ def create_jobs(instance, workspace, cfg_overrides):
     builder_opts = jenkins_cfg.BuilderOptions(tmpl_path)
     jenkins_cfg.ConfigurationRunner().run(builder_opts,
                                           instance_cfg)
+
+
+def params_from_str(params):
+    return {
+        pieces[0]: pieces[1]
+        for pieces in [p.split(":", 1) for p in params]
+    }
 
 
 class TemplatesCommand(Base):
@@ -74,7 +82,9 @@ class OrgTemplatesCommand(TemplatesCommand):
 
     def repo_job_mapping(self, repos, file_filter, force=False):
         if self.mapping is None or force:
-            repos = self.fetch_repos(filters=repos, files=file_filter, force=force)
+            repos = self.fetch_repos(filters=repos,
+                                     files=file_filter,
+                                     force=force)
             self.mapping = self.app.repo_mapper().map_configs(repos)
         return self.mapping
 
@@ -91,43 +101,54 @@ class GenerateTemplatesCommand(OrgTemplatesCommand):
     def description(self):
         return "Generate templates & project groups from template files."
 
-    def execute(self, opts):
-        from chamberlain.jenkins import template as jenkins_template
-        self.log.title("Generating templates in %s" % opts.workspace)
-        self.app.workspace.set_dir(opts.workspace)
+    def clean_workspace(self, workspace):
+        self.log.title("Generating templates in %s" % workspace)
+        self.app.workspace.set_dir(workspace)
         self.log.info("Cleaning %s ..." % self.app.workspace._wdir)
         self.app.workspace.clean()
+
+    def repo_params(self, instance, repo_name):
+        repo_data = self.app.github().repo_data(repo_name)
+        return {
+            "name": "%s-%s" % (instance, repo_name),
+            "repo": repo_data.name(),
+            "sshurl": repo_data.ssh_url(),
+            "ghurl": repo_data.html_url()
+        }
+
+    def copy_templates(self, templates=[]):
         self.log.info("Copying into workspace")
-        seen_instances = []
-        for template_dir in opts.templates:
+        self.app.workspace.copy_libs()
+        for template_dir in templates:
             self.log.info("\t- %s" % template_dir)
             self.app.workspace.copy_templates(template_dir)
-        user_params = {
-            pieces[0]: pieces[1]
-            for pieces in [p.split(":", 1) for p in opts.params]
-        }
+
+    def write_instance_templates(self, instance, repo, params, templates):
+        from chamberlain.jenkins import template as jenkins_template
+        yaml = jenkins_template.generate_project(params, templates)
+        tname = jenkins_template.template_name(repo)
+        tpath = os.path.join(instance, tname)
+        self.app.workspace.write_template(tpath, yaml)
+        self.log.etc(yaml + "\n")
+
+    def execute(self, opts):
+        self.clean_workspace(opts.workspace)
+        self.copy_templates(opts.templates)
+        user_params = params_from_str(opts.params)
         if bool(user_params):
             self.log.info("Injecting params: %s" % user_params)
+        seen_instances = []  # memoize seen instances for subdir creation
         for repo, instances in self.repo_job_mapping(opts.repos,
                                                      opts.file_filter,
                                                      opts.force).iteritems():
-            repo_data = self.app.github().repo_data(repo)
             for instance, templates in instances.iteritems():
                 if instance not in seen_instances:
                     self.app.workspace.create_subdir(instance)
                     seen_instances.append(instance)
-                params = {
-                    "name": "%s-%s" % (instance, repo),
-                    "repo": repo_data.name(),
-                    "sshurl": repo_data.ssh_url(),
-                    "ghurl": repo_data.html_url()
-                }
+                params = self.repo_params(instance, repo)
                 params.update(user_params)
-                yaml = jenkins_template.generate_project(params, templates)
-                self.log.etc(yaml + "\n")
-                tname = jenkins_template.template_name(repo)
-                tpath = "%s/%s" % (instance, tname)
-                self.app.workspace.create_file(tpath, yaml)
+                self.write_instance_templates(instance,
+                                              repo, params, templates)
 
 
 class SyncCommand(GenerateTemplatesCommand):
@@ -164,6 +185,73 @@ class SyncCommand(GenerateTemplatesCommand):
                                    " [%s], skipping" % (instance, repo))
                     continue
                 create_jobs(instance, self.app.workspace, icfg)
+
+
+# TODO: refactor & care; this entire command is a hack.
+class ProvisionLocalRepoCommand(GenerateTemplatesCommand):
+    def configure_parser(self, parser):
+        parser.add_argument("instance",
+                            help="Jenkins instance to provision")
+        parser.add_argument("template",
+                            help="Name of the template to use.")
+        parser.add_argument("--fork",
+                            type=str,
+                            default="origin",
+                            help="Fork to pull github data from")
+        parser.add_argument("-p",
+                            "--params",
+                            nargs="*",
+                            default=[],
+                            help="List of params to inject (key:value)")
+        parser.add_argument("-f",
+                            "--force-sync",
+                            dest="force",
+                            action="store_true",
+                            default=False,
+                            help="Force repository sync, ignoring cache.")
+        parser.add_argument("-w",
+                            "--workspace",
+                            dest="workspace",
+                            type=str,
+                            default=os.path.join(chap.app_home(), "workspace"),
+                            help="prepare a target template directory")
+
+    def description(self):
+        return "Provision a single job on an instance using template files in"\
+               " chamberlain's lib dirs"
+
+    def execute(self, opts):
+        self.app.workspace.set_dir(opts.workspace)
+        try:
+            icfg = self.app.config.jenkins.instances()[opts.instance]
+        except KeyError:
+            self.log.error("no such instance [%s]" % (opts.instance))
+            return
+        fork = git.name_from_local_remote(opts.fork)
+        self.log.title("Fetching github metadata for %s" % fork)
+        repos = self.fetch_repos(filters=[fork], force=opts.force)
+        # above only performs a fuzzy search
+        repos = [r for r in repos if r.full_name() == fork]
+        if len(repos) <= 0:
+            self.log.error("Could not find repo %s; --force-sync?" % fork)
+            return
+        if len(repos) > 1:
+            self.log.error("Found > 1 repo that matches %s" % fork)
+            [self.log.error("\t- %s" % r.full_name()) for r in repos]
+            return
+        self.log.info(repos[0]())
+        self.clean_workspace(opts.workspace)
+        self.copy_templates()
+        self.app.workspace.create_subdir(opts.instance)
+        params = self.repo_params(opts.instance, fork)
+        user_params = params_from_str(opts.params)
+        if bool(user_params):
+            self.log.info("Injecting params: %s" % user_params)
+        params['name'] = params['name'] + opts.template
+        params.update(user_params)
+        self.write_instance_templates(opts.instance, fork, params,
+                                      [opts.template])
+        create_jobs(opts.instance, self.app.workspace, icfg)
 
 
 class ShowMappingCommand(OrgTemplatesCommand):
