@@ -62,11 +62,14 @@ class Workspace():
         if not d == old_workspace and old_workspace is not None:
             self.copy_contents(old_workspace)
 
+    def copy_libs(self):
+        self.copy_contents(self._lib_dir,
+                           subdir=os.path.join("templates", "libs"))
+
     def copy_templates(self, in_dir):
         """
         copy over lib files, and THEN user files to ensure overwrites
         """
-        self.copy_contents(self._lib_dir, subdir=os.path.join("templates", "libs"))
         self.copy_contents(in_dir, subdir="templates")
 
     def copy_contents(self, source, subdir="", sourcedir=None):
@@ -92,7 +95,7 @@ class Workspace():
             return
         os.mkdir(full_path)
 
-    def create_file(self, path, contents):
+    def write_template(self, path, contents):
         write_file(os.path.join(self._wdir, path), contents)
 
     def template_subdir(self):
