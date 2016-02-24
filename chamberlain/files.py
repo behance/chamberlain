@@ -2,7 +2,7 @@ import json
 
 
 def write_file(file_path, contents):
-    with open(file_path, "w") as file_handle:
+    with open(file_path, "a") as file_handle:
         file_handle.write(contents)
 
 
