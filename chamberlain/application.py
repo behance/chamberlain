@@ -119,8 +119,12 @@ class Application:
             cfg_file = prep_default_config()
         self.config = Config(load_json_file(cfg_file))
 
-    def github(self):
-        return GHClient(self.config.github, cache_dir=app_home())
+    def github(self, api_url=None):
+        if api_url is None:
+            api_url = self.config.github.url()
+        return GHClient(self.config.github,
+                        cache_dir=app_home(),
+                        api_url=api_url)
 
     def jenkins(self, instance_name):
         configs = self.config.jenkins.instances()
