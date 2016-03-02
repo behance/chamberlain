@@ -96,7 +96,7 @@ class Workspace():
         os.mkdir(full_path)
 
     def write_template(self, path, contents):
-        write_file(os.path.join(self._wdir, path), contents)
+        write_file(os.path.join(self._wdir, path), contents, mode="a")
 
     def template_subdir(self):
         return os.path.join(self._wdir, "templates")
