@@ -1,8 +1,8 @@
 import json
 
 
-def write_file(file_path, contents):
-    with open(file_path, "a") as file_handle:
+def write_file(file_path, contents, mode="w"):
+    with open(file_path, mode) as file_handle:
         file_handle.write(contents)
 
 

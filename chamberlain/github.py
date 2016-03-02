@@ -24,10 +24,10 @@ def is_url(url):
 
 
 class Client:
-    def __init__(self, config, cache_dir=None):
+    def __init__(self, config, cache_dir=None, api_url=None):
         self.repos = None
         self.config = config
-        self.client = self._client(config.auth)
+        self.client = self._client(config.auth, api_url)
         self.cache_file = os.path.join(cache_dir, "github_repos.json")
 
     def repo_list(self, force_sync=False, filters=[], file_filters=[]):
@@ -75,10 +75,15 @@ class Client:
             ]
         return repos
 
-    def _client(self, auth):
+    def _client(self, auth, api_url):
+        client = GitHub()
         if auth.token.exists():
-            return GitHub(token=auth.token())
-        if auth.username.exists() and auth.password.exists():
-            return GitHub(username=auth.username(),
-                          password=auth.password())
-        return GitHub()
+            client = GitHub(token=auth.token())
+        elif auth.username.exists() and auth.password.exists():
+            client = GitHub(username=auth.username(),
+                            password=auth.password())
+        # TODO: hacky - might want to just open up a PR to upstream?
+        if api_url is not None:
+            client._github_url = api_url
+            client.session.base_url = api_url
+        return client

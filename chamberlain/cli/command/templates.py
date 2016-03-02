@@ -32,6 +32,10 @@ class TemplatesCommand(Base):
         self.repos = None
 
     def configure_parser(self, parser):
+        parser.add_argument("--api-url",
+                            dest="api_url",
+                            default=None,
+                            help="Github API URL to use.")
         parser.add_argument("-f",
                             "--force-sync",
                             dest="force",
@@ -45,9 +49,9 @@ class TemplatesCommand(Base):
                             default=os.path.join(chap.app_home(), "workspace"),
                             help="prepare a target template directory")
 
-    def fetch_repos(self, filters=[], files=[], force=False):
+    def fetch_repos(self, filters=[], files=[], force=False, api_url=None):
         if self.repos is None or force:
-            gh_client = self.app.github()
+            gh_client = self.app.github(api_url)
             self.repos = gh_client.repo_list(force_sync=force,
                                              filters=filters,
                                              file_filters=files)
@@ -80,11 +84,12 @@ class OrgTemplatesCommand(TemplatesCommand):
                                   (default: [ cwd() ]")
         super(OrgTemplatesCommand, self).configure_parser(parser)
 
-    def repo_job_mapping(self, repos, file_filter, force=False):
+    def repo_job_mapping(self, repos, file_filter, force=False, api_url=None):
         if self.mapping is None or force:
             repos = self.fetch_repos(filters=repos,
                                      files=file_filter,
-                                     force=force)
+                                     force=force,
+                                     api_url=api_url)
             self.mapping = self.app.repo_mapper().map_configs(repos)
         return self.mapping
 
@@ -140,7 +145,8 @@ class GenerateTemplatesCommand(OrgTemplatesCommand):
         seen_instances = []  # memoize seen instances for subdir creation
         for repo, instances in self.repo_job_mapping(opts.repos,
                                                      opts.file_filter,
-                                                     opts.force).iteritems():
+                                                     opts.force,
+                                                     opts.api_url).iteritems():
             for instance, templates in instances.iteritems():
                 if instance not in seen_instances:
                     self.app.workspace.create_subdir(instance)
@@ -168,7 +174,8 @@ class SyncCommand(GenerateTemplatesCommand):
         seen_instances = []
         for repo, instances in self.repo_job_mapping(opts.repos,
                                                      opts.file_filter,
-                                                     opts.force).iteritems():
+                                                     opts.force,
+                                                     opts.api_url).iteritems():
             for instance in instances.keys():
                 if instance in seen_instances:
                     continue
@@ -190,6 +197,10 @@ class SyncCommand(GenerateTemplatesCommand):
 # TODO: refactor & care; this entire command is a hack.
 class ProvisionLocalRepoCommand(GenerateTemplatesCommand):
     def configure_parser(self, parser):
+        parser.add_argument("--api-url",
+                            dest="api_url",
+                            default=None,
+                            help="Github API URL to use.")
         parser.add_argument("instance",
                             help="Jenkins instance to provision")
         parser.add_argument("template",
@@ -229,7 +240,9 @@ class ProvisionLocalRepoCommand(GenerateTemplatesCommand):
             return
         fork = git.name_from_local_remote(opts.fork)
         self.log.title("Fetching github metadata for %s" % fork)
-        repos = self.fetch_repos(filters=[fork], force=opts.force)
+        repos = self.fetch_repos(filters=[fork],
+                                 force=opts.force,
+                                 api_url=opts.api_url)
         # above only performs a fuzzy search
         repos = [r for r in repos if r.full_name() == fork]
         if len(repos) <= 0:
@@ -247,7 +260,7 @@ class ProvisionLocalRepoCommand(GenerateTemplatesCommand):
         user_params = params_from_str(opts.params)
         if bool(user_params):
             self.log.info("Injecting params: %s" % user_params)
-        params['name'] = params['name'] + opts.template
+        params['name'] = '%s-%s' % (params['name'], opts.template)
         params.update(user_params)
         self.write_instance_templates(opts.instance, fork, params,
                                       [opts.template])
@@ -262,7 +275,8 @@ class ShowMappingCommand(OrgTemplatesCommand):
         # TODO: actually care how I'm doing this
         for repo, instances in self.repo_job_mapping(opts.repos,
                                                      opts.file_filter,
-                                                     opts.force).iteritems():
+                                                     opts.force,
+                                                     opts.api_url).iteritems():
             self.log.title(repo)
             for instance, templates in instances.iteritems():
                 self.log.bold("\t%s" % instance)
