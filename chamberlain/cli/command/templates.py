@@ -260,7 +260,7 @@ class ProvisionLocalRepoCommand(GenerateTemplatesCommand):
         user_params = params_from_str(opts.params)
         if bool(user_params):
             self.log.info("Injecting params: %s" % user_params)
-        params['name'] = params['name'] + opts.template
+        params['name'] = '%s-%s' % (params['name'], opts.template)
         params.update(user_params)
         self.write_instance_templates(opts.instance, fork, params,
                                       [opts.template])
