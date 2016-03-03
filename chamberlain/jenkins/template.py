@@ -1,8 +1,9 @@
 import yaml
+from copy import copy
 
 
 def generate_project(params, jobs):
-    project = {param: val for (param, val) in params.iteritems()}
+    project = copy(params)
     project["jobs"] = jobs
     return yaml.safe_dump([{"project": project}],
                           encoding='utf-8',
