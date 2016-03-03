@@ -117,6 +117,7 @@ class GenerateTemplatesCommand(OrgTemplatesCommand):
         return {
             "name": "%s-%s" % (instance, repo_name),
             "repo": repo_data.name(),
+            "repo_full_name": repo_data.full_name(),
             "sshurl": repo_data.ssh_url(),
             "ghurl": repo_data.html_url()
         }
