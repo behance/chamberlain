@@ -17,3 +17,7 @@ def name_from_url(url):
 
 def name_from_local_remote(remote):
     return name_from_url(remote_url(remote))
+
+
+def org_from_name(fullname):
+    return fullname.split("/", 1)[0]

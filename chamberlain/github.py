@@ -48,7 +48,7 @@ class Client:
         return self.filter_repos(filters, file_filters)
 
     def repo_data(self, repo, force_sync=False):
-        repos = self.repo_list(force_sync=force_sync, filters=[repo])
+        repos = self.repo_list(force=force_sync, filters=[repo])
         if len(repos) > 1 and not any([r.full_name() == repo for r in repos]):
             raise RuntimeWarning("'%s' returned multiple repos with no exact"
                                  " matches. use repo_list() instead if this"

@@ -49,12 +49,14 @@ class TemplatesCommand(Base):
                             default=os.path.join(chap.app_home(), "workspace"),
                             help="prepare a target template directory")
 
-    def fetch_repos(self, filters=[], files=[], force=False, api_url=None):
+    def fetch_repos(self, orgs=[], filters=[], files=[], force=False,
+                    api_url=None):
         if self.repos is None or force:
             gh_client = self.app.github(api_url)
-            self.repos = gh_client.repo_list(force_sync=force,
+            self.repos = gh_client.repo_list(force=force,
                                              filters=filters,
-                                             file_filters=files)
+                                             file_filters=files,
+                                             orgs=orgs)
         return self.repos
 
 
@@ -240,8 +242,10 @@ class ProvisionLocalRepoCommand(GenerateTemplatesCommand):
             self.log.error("no such instance [%s]" % (opts.instance))
             return
         fork = git.name_from_local_remote(opts.fork)
+        org = git.org_from_name(fork)
         self.log.title("Fetching github metadata for %s" % fork)
         repos = self.fetch_repos(filters=[fork],
+                                 orgs=[org],
                                  force=opts.force,
                                  api_url=opts.api_url)
         # above only performs a fuzzy search
