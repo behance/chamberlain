@@ -232,8 +232,8 @@ class ProvisionLocalRepoCommand(GenerateTemplatesCommand):
                             help="prepare a target template directory")
 
     def description(self):
-        return "Provision a single job on an instance using templates files in"\
-               " chamberlain's lib dirs"
+        return "Provision a single job on an instance using templates files" \
+               " in chamberlain's lib dirs"
 
     def execute(self, opts):
         self.app.workspace.set_dir(opts.workspace)
