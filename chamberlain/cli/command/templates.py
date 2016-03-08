@@ -206,8 +206,9 @@ class ProvisionLocalRepoCommand(GenerateTemplatesCommand):
                             help="Github API URL to use.")
         parser.add_argument("instance",
                             help="Jenkins instance to provision")
-        parser.add_argument("template",
-                            help="Name of the template to use.")
+        parser.add_argument("templates",
+                            nargs="*",
+                            help="Templates to use.")
         parser.add_argument("--fork",
                             type=str,
                             default="origin",
@@ -231,7 +232,7 @@ class ProvisionLocalRepoCommand(GenerateTemplatesCommand):
                             help="prepare a target template directory")
 
     def description(self):
-        return "Provision a single job on an instance using template files in"\
+        return "Provision a single job on an instance using templates files in"\
                " chamberlain's lib dirs"
 
     def execute(self, opts):
@@ -265,10 +266,10 @@ class ProvisionLocalRepoCommand(GenerateTemplatesCommand):
         user_params = params_from_str(opts.params)
         if bool(user_params):
             self.log.info("Injecting params: %s" % user_params)
-        params['name'] = '%s-%s' % (params['name'], opts.template)
+        params['name'] = '%s-project' % params['name']
         params.update(user_params)
         self.write_instance_templates(opts.instance, fork, params,
-                                      [opts.template])
+                                      opts.templates)
         create_jobs(opts.instance, self.app.workspace, icfg)
 
 
