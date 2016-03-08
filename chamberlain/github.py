@@ -30,15 +30,17 @@ class Client:
         self.client = self._client(config.auth, api_url)
         self.cache_file = os.path.join(cache_dir, "github_repos.json")
 
-    def repo_list(self, force_sync=False, filters=[], file_filters=[]):
-        if self.repos is not None and not force_sync:
+    def repo_list(self, force=False, filters=[], file_filters=[], orgs=[]):
+        if self.repos is not None and not force:
             return self.filter_repos(filters, file_filters)
-        if os.path.isfile(self.cache_file) and not force_sync:
+        if os.path.isfile(self.cache_file) and not force:
             self.repos = [Config(repo)
                           for repo in load_json_file(self.cache_file)]
             return self.filter_repos(filters, file_filters)
         repos = []
-        for org_login in self.config.orgs():
+        if len(orgs) <= 0:
+            orgs = copy(self.config.orgs())
+        for org_login in orgs:
             for repo in self.client.organization(org_login).repositories():
                 repos.append(repo_hash(repo))
         write_json_file(self.cache_file, repos)
@@ -46,7 +48,7 @@ class Client:
         return self.filter_repos(filters, file_filters)
 
     def repo_data(self, repo, force_sync=False):
-        repos = self.repo_list(force_sync=force_sync, filters=[repo])
+        repos = self.repo_list(force=force_sync, filters=[repo])
         if len(repos) > 1 and not any([r.full_name() == repo for r in repos]):
             raise RuntimeWarning("'%s' returned multiple repos with no exact"
                                  " matches. use repo_list() instead if this"
