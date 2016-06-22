@@ -30,6 +30,13 @@ class Client:
         self.client = self._client(config.auth, api_url)
         self.cache_file = os.path.join(cache_dir, "github_repos.json")
 
+    def __getattr__(self, attr):
+        try:
+            return object.__getattr__(self, attr)
+        # delegate all unknown calls to github client
+        except AttributeError:
+            return getattr(self.client, attr)
+
     def repo_list(self, force=False, filters=[], file_filters=[], orgs=[]):
         if self.repos is not None and not force:
             return self.filter_repos(filters, file_filters)
