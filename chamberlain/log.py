@@ -11,6 +11,9 @@ class Logger:
     def etc(self, msg):
         cprint(msg, "blue")
 
+    def warn(self, msg):
+        cprint(msg, "yellow")
+
     def info(self, msg):
         cprint(msg, "green")
 
