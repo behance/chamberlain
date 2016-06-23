@@ -9,6 +9,8 @@ from chamberlain.cli.command.templates import ShowMappingCommand, \
                                               GenerateTemplatesCommand, \
                                               SyncCommand, \
                                               ProvisionLocalRepoCommand
+from chamberlain.cli.command.hooks import \
+    DeleteHooksCommand as DeleteHooksCommand
 from chamberlain.cli.command.nodes import \
     Command as NodesCommand
 from chamberlain.cli.command.list import \
@@ -30,7 +32,8 @@ def command_hash():
         "instances": ListInstancesCommand,
         "nodes": NodesCommand,
         "gh-sync": ProvisionLocalRepoCommand,
-        "import-templates": ImportCommand
+        "import-templates": ImportCommand,
+        "delete-hooks": DeleteHooksCommand
     }
 
 
