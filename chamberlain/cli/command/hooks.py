@@ -42,13 +42,19 @@ class DeleteHooksCommand(Base):
                 continue
             self.log.title("Evaluating %s" % repo.full_name)
             for hook in repo.hooks():
-                if not hook.config or not hook.config["url"]:
+                try:
+                    if not hook.config or not hook.config["url"]:
+                        continue
+                    if any(url in hook.config["url"] for url in opts.urls):
+                        self.log.info(self.hook_to_json(hook))
+                        if opts.force or user_confirm("Delete hook?", False):
+                            hook.delete()
+                            self.log.warn("Deleted!")
+                except KeyError as err:
+                    self.log.warn("Could not evaluate hook %s, missing key "
+                                  "[%s] in response. "
+                                  "SKIPPING" % (hook.config, err))
                     continue
-                if any(url in hook.config["url"] for url in opts.urls):
-                    self.log.info(self.hook_to_json(hook))
-                    if opts.force or user_confirm("Delete this hook?", False):
-                        hook.delete()
-                        self.log.warn("Deleted!")
 
     def description(self):
         return "Delete hooks for a repository (or multiple repos)."
