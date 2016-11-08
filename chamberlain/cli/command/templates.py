@@ -1,4 +1,5 @@
 import os
+import json
 from abc import ABCMeta
 
 import chamberlain.application as chap  # lols
@@ -115,8 +116,14 @@ class GenerateTemplatesCommand(OrgTemplatesCommand):
         self.app.workspace.clean()
 
     def repo_params(self, instance, repo_name):
+        instance_defaults = {}
+        try:
+            cfg = self.app.config.jenkins.template_params()
+            instance_defaults = cfg[instance]
+        except:
+            pass
         repo_data = self.app.github().repo_data(repo_name)
-        return {
+        ret = {
             "name": "%s-%s" % (instance, repo_name),
             "repo": repo_data.name(),
             "owner": repo_data.owner(),
@@ -124,6 +131,8 @@ class GenerateTemplatesCommand(OrgTemplatesCommand):
             "sshurl": repo_data.ssh_url(),
             "ghurl": repo_data.html_url()
         }
+        ret.update(instance_defaults)
+        return ret
 
     def copy_templates(self, templates=[]):
         self.log.info("Copying into workspace")
@@ -259,7 +268,8 @@ class ProvisionLocalRepoCommand(GenerateTemplatesCommand):
             self.log.error("Found > 1 repo that matches %s" % fork)
             [self.log.error("\t- %s" % r.full_name()) for r in repos]
             return
-        self.log.info(repos[0]())
+        self.log.title("Fetched metadata for %s" % fork)
+        self.log.info(json.dumps(repos[0](), indent=2))
         self.clean_workspace(opts.workspace)
         self.copy_templates()
         self.app.workspace.create_subdir(opts.instance)
