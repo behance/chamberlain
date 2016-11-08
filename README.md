@@ -45,6 +45,12 @@ sudo python setup.py install
                 }
             }
         },
+        "template_params": {
+            "bejankins": {
+                "gitauth": "aaaaaaaa-0000-aaaa-0000-aaaaaaaaaaaa",
+                "ghprauth": "00000000-aaaa-0000-aaaa-000000000000"
+            }
+        },
         "jobs": [
             {
                 "instance": "ci-jenkins",
@@ -70,7 +76,7 @@ sudo python setup.py install
 }
 ```
 
-**NOTE**: all values in the instance configs should be strings. Also, the config values mirror the [configuration file for jenkins job builder](http://docs.openstack.org/infra/jenkins-job-builder/execution.html#configuration-file).
+**NOTE**: all values in the `instances` config should be strings. Also, the config values mirror the [configuration file for jenkins job builder](http://docs.openstack.org/infra/jenkins-job-builder/execution.html#configuration-file).
 
 i.e.:
 
@@ -157,14 +163,34 @@ Generates the workspace (using the same procedure as the `generate` command) and
 
 Same flags as the `generate` command.
 
+### **`chamberlain gh-sync TEMPLATE_NAME INSTANCE_NAME`**
+
+When run within a git repository, this command will attempt to take a bunch of github metdata for the repository and inject it into the given `TEMPLATE_NAME`. Immediately after on success, `INSTANCE_NAME` will be provisioned with the job.
+
+Metadata fields that are automatically fetched and injected are:
+
+```
+    ghurl: https://github.com/behance/chamberlain
+    jobs: ['{owner}-{repo}-make-ci']              # this is automatically updated as a list
+    name: ci-jenkins-behance/chamberlain-project  # automatically generated
+    owner: behance
+    repo: chamberlain
+    repo_full_name: behance/chamberlain
+    sshurl: git@github.com:behance/chamberlain.git
+```
+
+Notice that in the example config, there is a section in the `jenkins` config called `template_params`. You can add default values in here to be injected into the hash above. These are overrides that will be injected **on top of** the hash above. This is specifically useful when you have credential IDs that you want to inject into your templates to use with things such as the [`Git SCM Plugin`](http://docs.openstack.org/infra/jenkins-job-builder/scm.html?highlight=git%20scm#scm.git)
+
+Any other one-off overrides can be injected via the `--params` flag in the form of `key:value`
+
 ## Contributing
 - make your changes
 - `pip install tox && tox`
 
-**NOTE**: If you already have `singularity_runner` (via the [`singularity_dsl gem`](https://github.com/behance/singularity_dsl)) just run:
+If you have docker install and do not want to install python libs you can just run
 
 ```
-singularity_runner test
+make ci
 ```
 
-This will install `virtualenv`, bootstrap and run the above in the environment created.
+to run the tests in docker
