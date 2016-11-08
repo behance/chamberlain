@@ -1,5 +1,0 @@
-batch :ci_test do
-  shelltask { command 'make docker-ci-test' }
-end
-
-invoke_batch :ci_test
