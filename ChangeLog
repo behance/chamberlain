@@ -1,0 +1,134 @@
+CHANGES
+=======
+
+* README: CI & gh-sync notes
+* remove .singularityrc
+* chamberlain/repo: lowercase for all repo names
+* AUTHORS & ChangeLog files
+* commands/gh-sync: allow default params from config.json
+* Makefile: rename CI target
+* command/hooks: catch case where response from API is not expected
+* requirements: bump pbr >= 1.0
+* delete-hooks command
+* github: delegate unknown methods to raw client
+* log: add warn method
+* Dockerfile: switch to alpine
+* cli/command/templates.GenerateTemplatesCommand: add owner param
+* cli.command.templates/gh-sync: allow multiple template args
+* cli.command.templates/gh-sync: allow multiple template args
+* cli/command/templates.gh-sync: remove requirement of org in app config
+* github: allow passing in custom list of orgs
+* jenkins/template: remove some really stupid logic
+* cli/commands/templates: add repo_full_name into params
+* gh-sync: readable project names
+* application.Workspace: explicitly append template contents
+* files: mode arg for write_file
+* cli/command/templates: --api-url flag
+* application: recognize github: {url: ...}
+* github.Client: support other github API URLs
+* cli.command.templates: gh-sync command
+* application: split out lib copy logic, create_file -> write_template
+* files.write_file: append. I might regret doing this
+* cli.command.templates.OrgTemplatesCommand: repo_job_mapping no longer relies on parser
+* application.Workspace: can copy single files
+* git: util fxs to pull data from local git repos
+* application: copy libs into workspace/templates/libs
+* cli/command/libs.ImportTemplates: command to pool common templates
+* application.Workspace: concept out lib directory
+* cli/command/templates: general refactors, caching repo data
+* cli/command/templates.generate: --params overwrite flag
+* github: correct lib call for repos, add html_url to json cache
+* cli/command/templates.SyncCommand: --instances flag
+* jenkins/configuration: update for git repos, jjb  1.4.0
+* Makefile: correct docker-test command
+* README: update link to jjb config docs
+* Dockerfile: add entrypoint
+* tweak ci-pipeline, pep8 & test fixes
+* cli/command/templates: --file-filter flag
+* github: file filters via contents API
+* cli/command/list.InstancesCommand
+* cli/driver: error checking for invalid command names
+* splitting out template commands into separate module
+* requirements.txt: bump jjb to 1.4
+* Makefile: because lazy
+* cli/command/nodes: pep8
+* cli/command/nodes: action flag
+* cli/command/nodes: filter on arbitrary key, values
+* cli/command/nodes: status filters
+* remove py26 support
+* pep8 updates
+* mappers: replace set module with builtin
+* cli/command/nodes: barebones nodes listing command
+* requirements: more explicit in what deps needed
+* cli.command.GenerateTemplatesCommand: use path opt in jjb 1.0
+* jenkins.configuration: correct ini opt vals
+* github.Client: ensure that correct repo object is returned
+* mappers.TemplateFetcher: exclusive include config
+* README: updates
+* github.Client: update test
+* README: update
+* github.Client: also match repos by regex
+* README: update
+* cli.commands: use new logging decorators, memoize synced instances
+* jenkins.configuration: correct instance config setup, add __getattr__ in BuilderOption
+* log: using termcolor, screw logging
+* Sync Command
+* jenkins.configuration: wrapper module for JJB
+* application.Workspace: pep8 - decreased var length
+* cli.command.GenerateTemplatesCommand: create dir tree based on instances
+* application.Workspace: copy_templates & template_subdir util methods
+* cli.command.GenerateTemplatesCommand: tweak logs
+* github.Client: added repo_data method
+* Delete sample.jenkins-job-builder.ini
+* README: moooar updates
+* .singularityrc & tox: make sure that py27 is being used as the interpreter
+* test-requirements: hard-lock reqs
+* cli.command: refactors to base Command & GenerateTemplatesCommand
+* application.Workspace: wrapper for workspace operations
+* jenkins.template: util modules to generate YAML that JJB understands
+* files: write_file(), with write_json_file() as a wrapper
+* json_file -> files
+* cli.driver.main: adding generate command, whitespace tweaks
+* github.Client.repo_list: added test for filter
+* ShowMappings: move filter logic into github.Client.repo_list
+* mappers.RepoMapper: allow for more generic repo matching
+* remove unnecessary tests/__init__.py
+* tox.ini: only support py26...cause dict comprehensions
+* mappers.RepoMapper: filter by repo list
+* cli: ListRepoCommand -> ShowMappingCommand (list-repos -> map)
+* mappers.TemplateFetcher tests
+* mappers.TemplateFetcher: convert repo & meta into Configs
+* tox.ini: verbose nosetests
+* completely splitting out mapping logic into module
+* cli.driver: execute sys.exits
+* splitting out github & repo logic into modules
+* config_test: not using assertIsInstance; not defined for 2.6 test env
+* pep8 fixes
+* splitting out config tests
+* application.GithubClient: include private flag for repos
+* application.GithubClient.repo_list: wrap repo hashes in config objects
+* config & json_file modules
+* log: creating log module to contain configuration horribleness
+* README: config, command & contributing updates
+* .singularityrc: add invoke_batch so users just have to run "test" with the runner
+* tests: first tests, update deps & tox config
+* chamberlain.application.GithubClient: refactor hash generation
+* .gitignore: *.pyc
+* application.github: cache repo data
+* application: slight refactors, adding GithubClient class
+* requirements: using github3.py instead
+* application: Config & NullConfig classes, building of github object
+* application: module for composing logic & commands
+* README: few more tweaks
+* cli: final tweaks for OO CLI setup
+* chamberlain: more app scaffolding
+* README: documentation as specs
+* cli/main -> cli/driver
+* tox.ini: exclude build dir
+* cli/main: actually make version work
+* .singularityrc: install virtualenv
+* chamberlain/cli/main: lightly wrapping jenkins-jobs cli options
+* chamberlain/cmd -> chamberlain/cli/main
+* .singularityrc: tox
+* README: keyboards are hard
+* Initial Commit
