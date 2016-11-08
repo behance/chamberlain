@@ -10,7 +10,7 @@ ci-install:
 test: ci-install
 		tox
 
-docker-ci-test:
+ci:
 		docker build --tag behance/chamberlain-$$(git rev-parse HEAD) .
 		docker run --rm --entrypoint make behance/chamberlain-$$(git rev-parse HEAD) test
 		docker rmi -f behance/chamberlain-$$(git rev-parse HEAD)
