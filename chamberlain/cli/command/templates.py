@@ -252,15 +252,15 @@ class ProvisionLocalRepoCommand(GenerateTemplatesCommand):
         except KeyError:
             self.log.error("no such instance [%s]" % (opts.instance))
             return
-        fork = git.name_from_local_remote(opts.fork)
-        org = git.org_from_name(fork)
+        fork = git.name_from_local_remote(opts.fork).lower()
+        org = git.org_from_name(fork).lower()
         self.log.title("Fetching github metadata for %s" % fork)
         repos = self.fetch_repos(filters=[fork],
                                  orgs=[org],
                                  force=opts.force,
                                  api_url=opts.api_url)
         # above only performs a fuzzy search
-        repos = [r for r in repos if r.full_name() == fork]
+        repos = [r for r in repos if r.full_name().lower() == fork]
         if len(repos) <= 0:
             self.log.error("Could not find repo %s; --force-sync?" % fork)
             return
