@@ -8,11 +8,13 @@ import chamberlain.git as git
 from chamberlain.cli.command import Base
 
 
-def create_jobs(instance, workspace, cfg_overrides):
+def create_jobs(instance, workspace, cfg_overrides, template_dir=None):
+    if template_dir is None:
+        template_dir = workspace.template_subdir()
     instance_cfg = jenkins_cfg.InstanceConfig()
     instance_cfg.override_defaults(cfg_overrides)
     instance_path = os.path.join(workspace._wdir, instance)
-    tmpl_path = "%s:%s" % (workspace.template_subdir(), instance_path)
+    tmpl_path = "%s:%s" % (template_dir, instance_path)
     builder_opts = jenkins_cfg.BuilderOptions(tmpl_path)
     jenkins_cfg.ConfigurationRunner().run(builder_opts,
                                           instance_cfg)
