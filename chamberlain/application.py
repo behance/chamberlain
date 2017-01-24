@@ -84,6 +84,9 @@ class Workspace():
         # is given as the destination
         for fi in os.listdir(source):
             fpath = os.path.join(source, fi)
+            # listed dir IS the target dir - skip to prevent infinite recursion
+            if fpath in os.path.join(sourcedir, fi):
+                continue
             if os.path.isdir(fpath):
                 shutil.copytree(fpath, os.path.join(subdir_fp, fi))
                 continue
