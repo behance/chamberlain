@@ -307,7 +307,7 @@ class ProvisionLocalRepoCommand(GenerateTemplatesCommand):
             self.log.error("Could not provision jobs: %s" % err)
             ok = 1
         self.log.info("Project templates created in:")
-        self.log.info("\t%s" % workspace)
+        print(workspace)
         return ok
 
 
