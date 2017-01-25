@@ -1,11 +1,15 @@
-import os
 import json
+import os
+import time
 from abc import ABCMeta
 
 import chamberlain.application as chap  # lols
 import chamberlain.jenkins.configuration as jenkins_cfg
 import chamberlain.git as git
 from chamberlain.cli.command import Base
+from chamberlain.config import Config
+from chamberlain.jenkins import template as jenkins_template
+from chamberlain.repo import repo_hash
 
 
 def create_jobs(instance, workspace, cfg_overrides, template_dir=None):
@@ -117,14 +121,15 @@ class GenerateTemplatesCommand(OrgTemplatesCommand):
         self.log.info("Cleaning %s ..." % self.app.workspace._wdir)
         self.app.workspace.clean()
 
-    def repo_params(self, instance, repo_name):
+    def repo_params(self, instance, repo_name, repo_data = None):
         instance_defaults = {}
         try:
             cfg = self.app.config.jenkins.template_params()
             instance_defaults = cfg[instance]
         except:
             pass
-        repo_data = self.app.github().repo_data(repo_name)
+        if repo_data is None:
+            repo_data = self.app.github().repo_data(repo_name)
         ret = {
             "name": "%s-%s" % (instance, repo_name),
             "repo": repo_data.name(),
@@ -144,7 +149,6 @@ class GenerateTemplatesCommand(OrgTemplatesCommand):
             self.app.workspace.copy_templates(template_dir)
 
     def write_instance_templates(self, instance, repo, params, templates):
-        from chamberlain.jenkins import template as jenkins_template
         yaml = jenkins_template.generate_project(params, templates)
         tname = jenkins_template.template_name(repo)
         tpath = os.path.join(instance, tname)
@@ -275,7 +279,6 @@ class ProvisionLocalRepoCommand(GenerateTemplatesCommand):
 
         self.log.title("Fetching github data for %s (org: %s)" % (fork, org))
 
-        from chamberlain.repo import repo_hash
         repo = repo_hash(self.app.github(opts.api_url).repository(org,
                                                                   repo_name))
 
@@ -285,13 +288,12 @@ class ProvisionLocalRepoCommand(GenerateTemplatesCommand):
         workspace = opts.workspace
         if workspace is None:
             workspace = self._default_workspace(fork)
-        import time
         workspace = "%s-%i" % (workspace, int(time.time()))
 
         self.app.workspace.set_dir(workspace)
         self.clean_workspace(workspace)
         self.app.workspace.create_subdir(opts.instance)
-        params = self.repo_params(opts.instance, fork)
+        params = self.repo_params(opts.instance, fork, Config(repo))
         user_params = params_from_str(opts.params)
         if bool(user_params):
             self.log.info("Injecting params: %s" % user_params)
