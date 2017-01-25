@@ -8,11 +8,13 @@ import chamberlain.git as git
 from chamberlain.cli.command import Base
 
 
-def create_jobs(instance, workspace, cfg_overrides):
+def create_jobs(instance, workspace, cfg_overrides, template_dir=None):
+    if template_dir is None:
+        template_dir = workspace.template_subdir()
     instance_cfg = jenkins_cfg.InstanceConfig()
     instance_cfg.override_defaults(cfg_overrides)
     instance_path = os.path.join(workspace._wdir, instance)
-    tmpl_path = "%s:%s" % (workspace.template_subdir(), instance_path)
+    tmpl_path = "%s:%s" % (template_dir, instance_path)
     builder_opts = jenkins_cfg.BuilderOptions(tmpl_path)
     jenkins_cfg.ConfigurationRunner().run(builder_opts,
                                           instance_cfg)
@@ -219,6 +221,11 @@ class ProvisionLocalRepoCommand(GenerateTemplatesCommand):
         parser.add_argument("templates",
                             nargs="*",
                             help="Templates to use.")
+        parser.add_argument("--repo",
+                            dest="repo",
+                            default=None,
+                            help="Repository to fetch metadata for. Use this"
+                                 " if you don't want the cwd as the git repo")
         parser.add_argument("--fork",
                             type=str,
                             default="origin",
@@ -238,40 +245,51 @@ class ProvisionLocalRepoCommand(GenerateTemplatesCommand):
                             "--workspace",
                             dest="workspace",
                             type=str,
-                            default=os.path.join(chap.app_home(), "workspace"),
+                            default=None,
                             help="prepare a target template directory")
+
+    def _default_workspace(self, fork):
+        return os.path.join(chap.app_home(), "workspace", "gh-sync", fork)
 
     def description(self):
         return "Provision a single job on an instance using templates files" \
                " in chamberlain's lib dirs"
 
     def execute(self, opts):
-        self.app.workspace.set_dir(opts.workspace)
         try:
             icfg = self.app.config.jenkins.instances()[opts.instance]
         except KeyError:
             self.log.error("no such instance [%s]" % (opts.instance))
             return
-        fork = git.name_from_local_remote(opts.fork).lower()
-        org = git.org_from_name(fork).lower()
-        self.log.title("Fetching github metadata for %s" % fork)
-        repos = self.fetch_repos(filters=[fork],
-                                 orgs=[org],
-                                 force=opts.force,
-                                 api_url=opts.api_url)
-        # above only performs a fuzzy search
-        repos = [r for r in repos if r.full_name().lower() == fork]
-        if len(repos) <= 0:
-            self.log.error("Could not find repo %s; --force-sync?" % fork)
-            return
-        if len(repos) > 1:
-            self.log.error("Found > 1 repo that matches %s" % fork)
-            [self.log.error("\t- %s" % r.full_name()) for r in repos]
-            return
+
+        fork = opts.repo
+        org = None
+        if fork is None:
+            fork = git.name_from_local_remote(opts.fork)
+            org = git.org_from_name(fork)
+        else:
+            org, _ = opts.repo.split("/", 1)
+        fork = fork.lower()
+        org = org.lower()
+        repo_name = fork.replace("%s/" % org, "")
+
+        self.log.title("Fetching github data for %s (org: %s)" % (fork, org))
+
+        from chamberlain.repo import repo_hash
+        repo = repo_hash(self.app.github(opts.api_url).repository(org,
+                                                                  repo_name))
+
         self.log.title("Fetched metadata for %s" % fork)
-        self.log.info(json.dumps(repos[0](), indent=2))
-        self.clean_workspace(opts.workspace)
-        self.copy_templates()
+        self.log.info(json.dumps(repo, indent=2))
+
+        workspace = opts.workspace
+        if workspace is None:
+            workspace = self._default_workspace(fork)
+        import time
+        workspace = "%s-%i" % (workspace, int(time.time()))
+
+        self.app.workspace.set_dir(workspace)
+        self.clean_workspace(workspace)
         self.app.workspace.create_subdir(opts.instance)
         params = self.repo_params(opts.instance, fork)
         user_params = params_from_str(opts.params)
@@ -281,7 +299,16 @@ class ProvisionLocalRepoCommand(GenerateTemplatesCommand):
         params.update(user_params)
         self.write_instance_templates(opts.instance, fork, params,
                                       opts.templates)
-        create_jobs(opts.instance, self.app.workspace, icfg)
+        ok = 0
+        try:
+            create_jobs(opts.instance, self.app.workspace, icfg,
+                        self.app.workspace._default_libdir())
+        except Exception as err:
+            self.log.error("Could not provision jobs: %s" % err)
+            ok = 1
+        self.log.info("Project templates created in:")
+        self.log.info("\t%s" % workspace)
+        return ok
 
 
 class ShowMappingCommand(OrgTemplatesCommand):
