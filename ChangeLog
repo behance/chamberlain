@@ -1,6 +1,12 @@
 CHANGES
 =======
 
+* gh-sync: prevent double API fetch
+* gh-sync: regular print out dir
+* gh-sync: rework
+* cli.command.templates.create_jobs: allow template lib dir to be configured
+* app: prevent infinite recursion when copying from workspace into subdir
+* gh-sync: use lowercase names
 * README: CI & gh-sync notes
 * remove .singularityrc
 * chamberlain/repo: lowercase for all repo names

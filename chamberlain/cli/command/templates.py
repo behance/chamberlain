@@ -121,7 +121,7 @@ class GenerateTemplatesCommand(OrgTemplatesCommand):
         self.log.info("Cleaning %s ..." % self.app.workspace._wdir)
         self.app.workspace.clean()
 
-    def repo_params(self, instance, repo_name, repo_data = None):
+    def repo_params(self, instance, repo_name, repo_data=None):
         instance_defaults = {}
         try:
             cfg = self.app.config.jenkins.template_params()
