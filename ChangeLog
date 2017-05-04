@@ -1,6 +1,9 @@
 CHANGES
 =======
 
+* gh-sync: --template-vars flag
+* cli/command/templates: pep8 omfg shutup
+* requirements: strict versioning for pbr
 * gh-sync: prevent double API fetch
 * gh-sync: regular print out dir
 * gh-sync: rework
