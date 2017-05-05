@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 import time
 from abc import ABCMeta
 
@@ -148,11 +149,55 @@ class GenerateTemplatesCommand(OrgTemplatesCommand):
             self.log.info("\t- %s" % template_dir)
             self.app.workspace.copy_templates(template_dir)
 
-    def write_instance_templates(self, instance, repo, params, templates):
-        yaml = jenkins_template.generate_project(params, templates)
+    def write_instance_templates(self, instance, repo, params, templates,
+                                 template_params=[]):
+        # first format the template params, it's a str array from CLI
+        final_template_params = {}
+        for template_params in template_params:
+            (template_name, param_json) = template_params.split(":", 1)
+            try:
+                template_vars = json.loads(param_json)
+                final_template_params[template_name] = template_vars
+            except ValueError:
+                self.log.warn("Template %s: invalid var JSON, skipping"
+                              % template_name)
+
+        # compile full template list with vars, if any
+        final_jobs = []
+        for template in templates:
+            try:
+                template_params = final_template_params[template]
+                self.log.info("- %s - vars found:" % template)
+                perms = []
+                for (var, vals) in template_params.iteritems():
+                    if len(perms) == 0:
+                        perms = [{var: v} for v in set(vals)]
+                        continue
+                    temp = []
+                    for val in set(vals):
+                        for perm in perms:
+                            new_perm = perm.copy()
+                            new_perm[var] = val
+                            temp.append(new_perm)
+                    perms = temp
+                for perm in perms:
+                    self.log.info("\t- %s" % perm)
+                    final_jobs.append({template: perm})
+            except KeyError:
+                self.log.info("- %s - no vars detected" % template)
+                final_jobs.append(template)
+            except Exception as err:
+                self.log.error("Could not consolidate job templates with "
+                               "vars: %s" % err)
+                sys.exit(1)
+
+        yaml = jenkins_template.generate_project(params, final_jobs)
+
+        # write template
         tname = jenkins_template.template_name(repo)
         tpath = os.path.join(instance, tname)
         self.app.workspace.write_template(tpath, yaml)
+        self.log.etc("\n======== Resulting YAML ========\n")
         self.log.etc(yaml + "\n")
 
     def execute(self, opts):
@@ -230,6 +275,14 @@ class ProvisionLocalRepoCommand(GenerateTemplatesCommand):
                             default=None,
                             help="Repository to fetch metadata for. Use this"
                                  " if you don't want the cwd as the git repo")
+        parser.add_argument("--template-vars",
+                            dest="vars",
+                            nargs="*",
+                            default=[],
+                            help="Variables to inject into specific templates."
+                                 " In the following form"
+                                 " (note no whitespace in JSON):\n"
+                                 " <template_name>:{\"var\":[\"values\"]}")
         parser.add_argument("--fork",
                             type=str,
                             default="origin",
@@ -300,7 +353,7 @@ class ProvisionLocalRepoCommand(GenerateTemplatesCommand):
         params['name'] = '%s-project' % params['name']
         params.update(user_params)
         self.write_instance_templates(opts.instance, fork, params,
-                                      opts.templates)
+                                      opts.templates, opts.vars)
         ok = 0
         try:
             create_jobs(opts.instance, self.app.workspace, icfg,
